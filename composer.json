@@ -1,0 +1,28 @@
+{
+    "name": "comodojo/rpcclient",
+    "description": "XML and JSON(2.0) RPC client",
+    "license": "GPL-3.0+",
+    "type": "library",
+    "keywords": [
+        "comodojo",
+        "rpc",
+        "xmlrpc",
+        "jsonrpc"
+    ],
+    "homepage": "http://www.comodojo.org",
+     "support": {
+        "issues": "https://github.com/comodojo/rpcclient/issues"
+    },
+    "authors": [
+        {
+            "name": "Marco Giovinazzi",
+            "email": "info@comodojo.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Comodojo\\Exception\\": "src/Exception",
+            "Comodojo\\RpcClient\\": "src"
+        }
+    }
+}
