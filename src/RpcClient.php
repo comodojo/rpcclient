@@ -93,9 +93,11 @@ class RpcClient {
 
     private $requests = array();
     
-    final public function __construct($server) {
+    public function __construct($server) {
 
         if ( empty($server) ) throw new Exception("Invalid RPC server address");
+
+        $this->server = $server;
 
     }
 
