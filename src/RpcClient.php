@@ -34,6 +34,13 @@ use \Crypt_AES;
 class RpcClient {
     
     /**
+     * Default disabled: is faster but does not work for base64 and datetime values
+     *
+     * @var bool
+     */
+    static private $useNativeEncoder = false;
+
+    /**
      * Remote host address (complete url)
      *
      * @var string
@@ -76,6 +83,13 @@ class RpcClient {
     private $encoding = 'utf-8';
 
     /**
+     * Autoclean requests
+     *
+     * @var string
+     */
+    private $autoclean = true;
+
+    /**
      * Supported RPC protocols
      *
      * @var string
@@ -92,6 +106,8 @@ class RpcClient {
     // internals
 
     private $requests = array();
+
+    private $special_types = array();
     
     public function __construct($server) {
 
@@ -174,6 +190,24 @@ class RpcClient {
 
     }
 
+    final public function autoclean($mode=true) {
+
+        $this->autoclean = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
+
+        return $this;
+
+    }
+
+    final public function setValueType(&$value, $type) {
+
+        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime")) ) throw new Exception("Invalid value type");
+
+        $this->special_types[$value] = strtolower($type);
+
+        return $this;
+
+    }
+
     /**
      * Send request(s) to server
      *
@@ -224,6 +258,8 @@ class RpcClient {
 
         }
         
+        if ( $this->autoclean ) $this->cleanRequests();
+
         return $response;
 
     }
@@ -326,13 +362,18 @@ class RpcClient {
 
     }
 
-    private function xmlCall($request) {
+    /**
+     * @todo    Fix xmlrpc_encode_request base64 not recognized correctly
+     *
+     */private function xmlCall($request) {
 
         try {
         
             if ( self::phpXmlrpcAvailable() ) {
 
-                $request = xmlrpc_encode_request($request["method"], $request["parameters"], array(
+                foreach ($this->special_types as $key => $value) xmlrpc_set_type($key, $value);
+
+                $real_request = xmlrpc_encode_request($request["METHOD"], $request["PARAMETERS"], array(
                     'encoding' => $this->encoding,
                     'verbosity'=> 'no_white_space',
                     'version'  => 'xmlrpc'
@@ -342,11 +383,13 @@ class RpcClient {
 
                 $encoder = new XmlrpcEncoder();
 
-                $request = $encoder->setEncoding($this->encoding)->encodeCall($request["method"], $request["parameters"]);
+                foreach ($this->special_types as $key => $value) $encoder->setValueType($key, $value); 
+
+                $real_request = $encoder->setEncoding($this->encoding)->encodeCall($request["METHOD"], $request["PARAMETERS"]);
 
             }
 
-            $received = $this->performCall($request, 'application/xml');
+            $received = $this->performCall($real_request, 'application/xml');
 
             if ( self::phpXmlrpcAvailable() ) {
 
@@ -362,7 +405,7 @@ class RpcClient {
 
                 $decoded = $decoder->decodeResponse($received);
 
-                if ( $decoded->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
+                if ( $decoder->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
 
                 $return = $decoded[0];
 
@@ -429,7 +472,7 @@ class RpcClient {
 
                 $decoded = $decoder->decodeResponse($received);
 
-                if ( $decoded->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
+                if ( $decoder->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
 
                 $return = $decoded[0];
 
@@ -479,7 +522,7 @@ class RpcClient {
         }
         catch (HttpException $he) {
 
-            throw $e;
+            throw $he;
 
         }
 
@@ -489,9 +532,17 @@ class RpcClient {
 
     }
 
+    private function cleanRequests() {
+
+        $this->requests = array();
+
+        $this->special_types = array();
+
+    }
+
     static private function phpXmlrpcAvailable() {
 
-        return function_exists('xmlrpc_encode_request');
+        return ( function_exists('xmlrpc_encode_request') AND self::$useNativeEncoder );
 
     }
 
