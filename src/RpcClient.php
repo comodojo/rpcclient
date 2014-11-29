@@ -452,7 +452,7 @@ class RpcClient {
 
                 $encoder = new XmlrpcEncoder();
 
-                $request = $encoder->setEncoding($this->encoding)->encodeCall("system.multicall", $requests);
+                $request = $encoder->setEncoding($this->encoding)->encodeMulticall($requests);
 
             }
 
@@ -550,14 +550,23 @@ class RpcClient {
 
         $return = array();
 
-        foreach ($requests as $request) {
+        if ( self::phpXmlrpcAvailable() ) {
+
+            foreach ($requests as $request) {
                 
-            array_push($return, array(
-                "methodName"    =>  $request["METHOD"],
-                "params"        =>  $request["PARAMETERS"]
-            ));
+                array_push($return, array(
+                    "methodName"    =>  $request["METHOD"],
+                    "params"        =>  $request["PARAMETERS"]
+                ));
+
+            }
+
+        } else {
+
+            foreach ($requests as $request) $return[$request["METHOD"]] = $request["PARAMETERS"];
 
         }
+        
 
         return $return;
 
