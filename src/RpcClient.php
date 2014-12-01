@@ -34,7 +34,8 @@ use \Crypt_AES;
 class RpcClient {
     
     /**
-     * Default disabled: is faster but does not work for base64 and datetime values
+     * Default disabled: native funcs are faster but are not compatible with base64, datetime
+     * and cdata values (as implemented here)
      *
      * @var bool
      */
@@ -200,7 +201,7 @@ class RpcClient {
 
     final public function setValueType(&$value, $type) {
 
-        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime")) ) throw new Exception("Invalid value type");
+        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime","cdata")) ) throw new Exception("Invalid value type");
 
         $this->special_types[$value] = strtolower($type);
 
@@ -365,7 +366,8 @@ class RpcClient {
     /**
      * @todo    Fix xmlrpc_encode_request base64 not recognized correctly
      *
-     */private function xmlCall($request) {
+     */
+    private function xmlCall($request) {
 
         try {
         
@@ -388,7 +390,7 @@ class RpcClient {
                 $real_request = $encoder->setEncoding($this->encoding)->encodeCall($request["METHOD"], $request["PARAMETERS"]);
 
             }
-
+            
             $received = $this->performCall($real_request, 'application/xml');
 
             if ( self::phpXmlrpcAvailable() ) {
@@ -512,7 +514,7 @@ class RpcClient {
             $data = 'comodojo_encrypted_envelope-'.$aes->encrypt($data);
 
         }
-        
+    
         try {
 
             $sender = new Httprequest($this->server);
@@ -566,8 +568,7 @@ class RpcClient {
             foreach ($requests as $request) $return[$request["METHOD"]] = $request["PARAMETERS"];
 
         }
-        
-
+    
         return $return;
 
     }
