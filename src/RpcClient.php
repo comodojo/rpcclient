@@ -12,24 +12,12 @@ use \Crypt_AES;
 /** 
  * Comodojo RPC client. It's able to talk in XML and JSON (2.0).
  *
- * It optionally supports a not standard comodojo encrypted transport
+ * It optionally supports a not standard encrypted transport
  * 
- * @package     Comodojo PHP Backend
- * @author      comodojo.org
- * @copyright   __COPYRIGHT__ comodojo.org (info@comodojo.org)
- * @version     __CURRENT_VERSION__
- * @license     GPL Version 3
+ * @package     Comodojo Spare Parts
+ * @author      Marco Giovinazzi <info@comodojo.org>
+ * @license     GPL-3.0+
  */
-
- /*
-  * 
-  * 2003 Unknown transport
-  * 2004 Wrong method (not scalar)
-  * 2005 Bad parameters (not array)
-  * 2006 Invalid request ID
-  * 2007 Invalid response ID:
-  * 2008 Error processing request: 
-  */
 
 class RpcClient {
     
@@ -42,20 +30,6 @@ class RpcClient {
     static private $useNativeEncoder = false;
 
     /**
-     * Remote host address (complete url)
-     *
-     * @var string
-     */
-    private $server = false;
-    
-    /**
-     * Remote host port
-     *
-     * @var int
-     */
-    private $port = 80;
-    
-    /**
      * Enable comodojo encrypted transport
      *
      * @var mixed
@@ -63,18 +37,11 @@ class RpcClient {
     private $encrypt = false;
     
     /**
-     * RPC transport
+     * RPC protocol
      *
      * @var string
      */
-    private $transport = 'XML';
-    
-    /**
-     * HTTP method to use
-     *
-     * @var string
-     */
-    private $http_method = 'POST';
+    private $protocol = 'XML';
     
     /**
      * Characters encoding
@@ -97,40 +64,73 @@ class RpcClient {
      */
     private $supported_protocols = array("XML","JSON");
 
-    /**
-     * Supported HTTP methods protocols
-     *
-     * @var string
-     */
-    private $supported_http_methods = array("GET","POST","PUT","DELETE");
-
     // internals
+
+    private $sender = null;
 
     private $requests = array();
 
     private $special_types = array();
     
+    /**
+     * Class constructor
+     *
+     * @param   string  $server  Remote RPC server address
+     *
+     * @return  Object  $this
+     * 
+     * @throws \Comodojo\Exception\HttpException
+     */
     public function __construct($server) {
 
         if ( empty($server) ) throw new Exception("Invalid RPC server address");
 
-        $this->server = $server;
+        try {
+
+            $this->sender = new Httprequest($server);
+            
+            $this->sender->setHttpMethod("POST");
+
+        }
+        catch (HttpException $he) {
+
+            throw $he;
+
+        }
 
     }
 
-    final public function transport($protocol) {
+    /**
+     * Set RPC protocol
+     *
+     * @param   string  $protocol RPC protocol
+     *
+     * @return  Object  $this
+     * 
+     * @throws \Exception
+     */
+    final public function setProtocol($protocol) {
 
         $proto = strtoupper($protocol);
 
         if ( !in_array($proto, $this->supported_protocols) ) throw new Exception("Invalid RPC protocol");
 
-        $this->transport = $proto;
+        $this->protocol = $proto;
 
         return $this;
 
     }
 
-    final public function encrypt($key) {
+    /**
+     * Set encryption key; this will enable the NOT-STANDARD payload encryption
+     *
+     * @param   string  $key Encryption key
+     *
+     * @return  Object  $this
+     * 
+     * @throws \Exception
+     */
+    final public function setEncryption($key) {
 
         if ( empty($key) ) throw new Exception("Shared key cannot be empty");
 
@@ -140,42 +140,76 @@ class RpcClient {
 
     }
 
-    final public function port($port) {
-
-        $this->port = filter_var($port, FILTER_VALIDATE_INT, array(
-            "options" => array(
-                "min_range" => 1,
-                "max_range" => 65535,
-                "default" => 80
-                )
-            )
-        );
-
-        return $this;
-
-    }
-
-    final public function encode($encoding) {
+    /**
+     * Set encoding (default to utf-8)
+     *
+     * @param   string  $encoding Characters encoding
+     *
+     * @return  Object  $this
+     */
+    final public function setEncoding($encoding) {
 
         $this->encoding = $encoding;
 
         return $this;
 
     }
+    
+    /**
+     * Set the XML encoder
+     * 
+     * If true, the comodojo xmlrpc encoder will be used (default). Otherwise
+     * message will be encoded using PHP XML-RPC Functions.
+     * 
+     * WARNING: using PHP XML-RPC Functions does not support special value
+     * types support!
+     *
+     * @param   bool  $mode
+     *
+     * @return  Object  $this
+     */
+    final public function setXmlEncoder($mode=true) {
+        
+        if ( $mode === false ) $this->useNativeEncoder = true;
+        
+        else $this->useNativeEncoder = false;
+        
+        return $this;
+        
+    }
 
-    final public function httpMethod($method) {
+    /**
+     * Set special type for a given values (referenced)
+     * 
+     * @param   mixed  $value The given value (referenced)
+     * @param   string $type  The value type (base64, datetime or cdata)
+     *
+     * @return  Object  $this
+     * 
+     * @throws \Exception
+     */
+    final public function setValueType(&$value, $type) {
 
-        $method = strtoupper($method);
+        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime","cdata")) ) throw new Exception("Invalid value type");
 
-        if ( !in_array($method, $this->supported_http_methods) ) throw new Exception("Invalid HTTP method");
-
-        $this->httpMethod = $method;
+        $this->special_types[$value] = strtolower($type);
 
         return $this;
 
     }
 
-    final public function request($method, $parameters, $id=true) {
+    /**
+     * Add request in queue
+     * 
+     * @param   string  $method      RPC method
+     * @param   array   $parameters  Request parameters
+     * @param   mixed   $id          Id (only for JSON RPC)
+     *
+     * @return  Object  $this
+     * 
+     * @throws \Exception
+     */
+    final public function addRequest($method, $parameters, $id=true) {
 
         if ( empty($method) OR !is_scalar($method) ) throw new Exception("Invalid method (not scalar or empty)");
         
@@ -191,7 +225,14 @@ class RpcClient {
 
     }
 
-    final public function autoclean($mode=true) {
+    /**
+     * Set autoclean on/off
+     * 
+     * @param   bool   $mode  If true, requests will be removed from queue at each send()
+     *
+     * @return  Object  $this
+     */
+    final public function setAutoclean($mode=true) {
 
         $this->autoclean = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
 
@@ -199,19 +240,29 @@ class RpcClient {
 
     }
 
-    final public function setValueType(&$value, $type) {
-
-        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime","cdata")) ) throw new Exception("Invalid value type");
-
-        $this->special_types[$value] = strtolower($type);
-
-        return $this;
-
+    /**
+     * Get the transport layer
+     * 
+     * This method will return the Httprequest object in order to customize transport
+     * options before sending request(s)
+     * 
+     * @return  \Comodojo\Httprequest\Httprequest
+     */
+    final public function getTransport() {
+        
+        return $this->sender;
+        
     }
 
     /**
      * Send request(s) to server
      *
+     * @return mixed
+     * 
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     * @throws \Comodojo\Exception\XmlrpcException
+     * @throws \Exception
      */
     public function send() {
 
@@ -219,7 +270,7 @@ class RpcClient {
 
         try {
 
-            switch ( $this->transport ) {
+            switch ( $this->protocol ) {
 
                 case 'XML':
                     
@@ -262,6 +313,14 @@ class RpcClient {
         if ( $this->autoclean ) $this->cleanRequests();
 
         return $response;
+
+    }
+
+    final public function cleanRequests() {
+
+        $this->requests = array();
+
+        $this->special_types = array();
 
     }
 
@@ -511,15 +570,13 @@ class RpcClient {
 
             $aes->setKey($this->encrypt);
 
-            $data = 'comodojo_encrypted_envelope-'.$aes->encrypt($data);
+            $data = 'comodojo_encrypted_request-'.base64_encode( $aes->encrypt($data) );
 
         }
     
         try {
 
-            $sender = new Httprequest($this->server);
-
-            $response = $sender->setPort($this->port)->setHttpMethod($this->http_method)->setContentType($content_type)->send($data);
+            $response = $this->sender->setContentType($content_type)->send($data);
 
         }
         catch (HttpException $he) {
@@ -528,17 +585,15 @@ class RpcClient {
 
         }
 
-        if ( $this->encrypt !== false ) return $aes->decrypt($response);
+        if ( $this->encrypt !== false ) {
+            
+            if ( self::checkEncryptedResponseConsistency($response) === false ) throw new RpcException("Inconsistent encrypted response received");
+        
+            return $aes->decrypt( base64_decode( substr($response,28) ) );
+           
+        }
 
         else return $response;
-
-    }
-
-    private function cleanRequests() {
-
-        $this->requests = array();
-
-        $this->special_types = array();
 
     }
 
@@ -589,7 +644,7 @@ class RpcClient {
 
         }
 
-        else if ( is_int($request["ID"]) ) {
+        else if ( is_scalar($request["ID"]) ) {
 
             $return["id"] = $request["ID"];
 
@@ -601,6 +656,12 @@ class RpcClient {
 
         return array($return, $id);
 
+    }
+    
+    static private function checkEncryptedResponseConsistency($data) {
+        
+        return substr($data,0,27) == 'comodojo_encrypted_response' ? true : false;
+        
     }
     
 }

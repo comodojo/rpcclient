@@ -9,7 +9,7 @@
         "xmlrpc",
         "jsonrpc"
     ],
-    "homepage": "http://www.comodojo.org",
+    "homepage": "http://comodojo.org",
      "support": {
         "issues": "https://github.com/comodojo/rpcclient/issues"
     },
@@ -27,7 +27,7 @@
     },
     "require": {
         "php": ">=5.3.0",
-        "comodojo/httprequest": "dev-master",
-        "comodojo/xmlrpc": "dev-master"
+        "comodojo/httprequest": "1.1.*",
+        "comodojo/xmlrpc": "1.0.*"
     }
 }
