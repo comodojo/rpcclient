@@ -1,12 +1,14 @@
 ## comodojo/rpcclient
 
+[![Build Status](https://api.travis-ci.org/comodojo/rpcclient.png)](http://travis-ci.org/comodojo/rpcclient) [![Latest Stable Version](https://poser.pugx.org/comodojo/rpcclient/v/stable)](https://packagist.org/packages/comodojo/rpcclient) [![Total Downloads](https://poser.pugx.org/comodojo/rpcclient/downloads)](https://packagist.org/packages/comodojo/rpcclient) [![Latest Unstable Version](https://poser.pugx.org/comodojo/rpcclient/v/unstable)](https://packagist.org/packages/comodojo/rpcclient) [![License](https://poser.pugx.org/comodojo/rpcclient/license)](https://packagist.org/packages/comodojo/rpcclient)
+
 An XML & JSON (2.0) RPC client with multicall support.
 
 ## Installation
 
 Install [composer](https://getcomposer.org/), then:
 
-`` composer require comodojo/rpcclient 1.0.* ``
+`` composer require comodojo/rpcclient 1.1.* ``
 
 ## Basic usage
 
@@ -153,7 +155,7 @@ try {
 
 The `addRequest` method expects a third optional parameter (`$id`) to handle id of JSON-RPC request.
 
-If it is set to `true` (default), client will automaticaly generate a random id for the request; if it is a scalar, value will be used as id. Other values will produce a `null` id (notification).
+If it is set to `true` (default), client will automaticaly generate a random id for the request; if it is a scalar, value will be used as id. Null value will produce a `null` id (notification).
 
 ```php
 // auto id

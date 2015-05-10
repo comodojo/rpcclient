@@ -16,7 +16,17 @@ use \Crypt_AES;
  * 
  * @package     Comodojo Spare Parts
  * @author      Marco Giovinazzi <info@comodojo.org>
- * @license     GPL-3.0+
+ * @license     MIT
+ *
+ * LICENSE:
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 class RpcClient {
@@ -209,7 +219,7 @@ class RpcClient {
      * 
      * @throws \Exception
      */
-    final public function addRequest($method, $parameters, $id=true) {
+    final public function addRequest($method, $parameters=array(), $id=true) {
 
         if ( empty($method) OR !is_scalar($method) ) throw new Exception("Invalid method (not scalar or empty)");
         
@@ -334,7 +344,7 @@ class RpcClient {
 
             if ( $id !== null ) {
 
-                $response = json_decode($received);
+                $response = json_decode($received, true);
 
                 if ( is_null($response) ) throw new Exception("Incomprehensible or empty response");
 
@@ -380,13 +390,13 @@ class RpcClient {
 
             if ( $id !== null ) $expected_ids[] = $id;
 
-            $batch_request[] = $request;
+            $batch_request[] = $json_request;
 
         }
 
         try {
             
-            $received = $this->performCall(json_encode($json_request), 'application/json');
+            $received = $this->performCall(json_encode($batch_request), 'application/json');
 
         } catch (HttpException $he) {
 
@@ -400,7 +410,7 @@ class RpcClient {
 
         if ( !empty($expected_ids) ) {
 
-            $response = json_decode($received);
+            $response = json_decode($received, true);
 
             if ( is_null($response) ) throw new Exception("Incomprehensible or empty response");
 
@@ -450,7 +460,7 @@ class RpcClient {
 
             }
             
-            $received = $this->performCall($real_request, 'application/xml');
+            $received = $this->performCall($real_request, 'text/xml');
 
             if ( self::phpXmlrpcAvailable() ) {
 
@@ -466,9 +476,9 @@ class RpcClient {
 
                 $decoded = $decoder->decodeResponse($received);
 
-                if ( $decoder->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
+                if ( $decoder->isFault() ) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
 
-                $return = $decoded[0];
+                $return = $decoded;
 
             }
 
@@ -517,7 +527,7 @@ class RpcClient {
 
             }
 
-            $received = $this->performCall($request, 'application/xml');
+            $received = $this->performCall($request, 'text/xml');
 
             if ( self::phpXmlrpcAvailable() ) {
 
@@ -533,9 +543,9 @@ class RpcClient {
 
                 $decoded = $decoder->decodeResponse($received);
 
-                if ( $decoder->isFault() ) throw new RpcException($decoded[0]['faultString'], $decoded[0]['faultCode']);
+                if ( $decoder->isFault() ) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
 
-                $return = $decoded[0];
+                $return = $decoded;
 
             }
 
