@@ -12,6 +12,6 @@ install: sudo pip install jsonrpclib
 
 before_script:
   - composer install --prefer-source
-  - python $TRAVIS_BUILD_DIR/test/resources/serve.py &
+  - python $TRAVIS_BUILD_DIR/tests/resources/serve.py &
 
 script: ./vendor/bin/phpunit
