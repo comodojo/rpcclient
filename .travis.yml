@@ -8,7 +8,7 @@ php:
   - 7
   - hhvm
 
-install: pip install jsonrpclib
+install: sudo pip install jsonrpclib
 
 before_script:
   - composer install --prefer-source
