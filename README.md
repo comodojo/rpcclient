@@ -197,3 +197,15 @@ try {
 }
 
 ```
+
+## Documentation
+
+- [API](https://api.comodojo.org/libs/Comodojo/RpcClient.html)
+
+## Contributing
+
+Contributions are welcome and will be fully credited. Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## License
+
+`` comodojo/rpcclient `` is released under the MIT License (MIT). Please see [License File](LICENSE) for more information.
