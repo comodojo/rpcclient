@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Xmlrpc\Tests;
+<?php
 
 class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 

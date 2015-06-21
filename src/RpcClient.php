@@ -15,7 +15,7 @@ use \Crypt_AES;
  * It optionally supports a not standard encrypted transport
  * 
  * @package     Comodojo Spare Parts
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     MIT
  *
  * LICENSE:

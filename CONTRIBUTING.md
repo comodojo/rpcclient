@@ -10,7 +10,7 @@ Have you found a bug? Raise an issues on [Github](https://github.com/comodojo/rp
 
 - **Search the issue or pull request list first**.
 
-- **Check the [master branch](https://github.com/comodojo/rpcclient)** to see if the bug has already been fixed-
+- **Check the [master branch](https://github.com/comodojo/rpcclient)** to see if the bug has already been fixed.
 
 ### When submitting your report
 
@@ -20,7 +20,7 @@ Have you found a bug? Raise an issues on [Github](https://github.com/comodojo/rp
 
 ## Pull Request
 
-To perform a Pull Requests on [Github](https://github.com/comodojo/rpcclient/pull):
+To perform a Pull Requests on [Github](https://github.com/comodojo/rpcclient/pulls):
 
 - Fork the project.
 
