@@ -87,8 +87,6 @@ class RpcClient {
      *
      * @param   string  $server  Remote RPC server address
      *
-     * @return  Object  $this
-     * 
      * @throws \Comodojo\Exception\HttpException
      */
     public function __construct($server) {
@@ -115,7 +113,7 @@ class RpcClient {
      *
      * @param   string  $protocol RPC protocol
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      * 
      * @throws \Exception
      */
@@ -136,7 +134,7 @@ class RpcClient {
      *
      * @param   string  $key Encryption key
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      * 
      * @throws \Exception
      */
@@ -155,7 +153,7 @@ class RpcClient {
      *
      * @param   string  $encoding Characters encoding
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      */
     final public function setEncoding($encoding) {
 
@@ -176,7 +174,7 @@ class RpcClient {
      *
      * @param   bool  $mode
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      */
     final public function setXmlEncoder($mode=true) {
         
@@ -194,9 +192,9 @@ class RpcClient {
      * @param   mixed  $value The given value (referenced)
      * @param   string $type  The value type (base64, datetime or cdata)
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      * 
-     * @throws \Exception
+     * @throws  \Exception
      */
     final public function setValueType(&$value, $type) {
 
@@ -215,9 +213,9 @@ class RpcClient {
      * @param   array   $parameters  Request parameters
      * @param   mixed   $id          Id (only for JSON RPC)
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      * 
-     * @throws \Exception
+     * @throws  \Exception
      */
     final public function addRequest($method, $parameters=array(), $id=true) {
 
@@ -240,7 +238,7 @@ class RpcClient {
      * 
      * @param   bool   $mode  If true, requests will be removed from queue at each send()
      *
-     * @return  Object  $this
+     * @return  \Comodojo\RpcClient\RpcClient
      */
     final public function setAutoclean($mode=true) {
 
@@ -326,14 +324,32 @@ class RpcClient {
 
     }
 
+    /**
+     * Cleanup requests
+     * 
+     * @return  \Comodojo\RpcClient\RpcClient
+     */
     final public function cleanRequests() {
 
         $this->requests = array();
 
         $this->special_types = array();
 
+        return $this;
+
     }
 
+    /**
+     * Perform a json call
+     *
+     * @param   array   $request
+     * 
+     * @return  mixed
+     *
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     * @throws \Exception
+     */
     private function jsonCall($request) {
 
         list($json_request, $id) = self::composeJsonRequest($request);
@@ -376,6 +392,17 @@ class RpcClient {
 
     }
 
+    /**
+     * Perform a json multicall
+     *
+     * @param   array   $request
+     * 
+     * @return  array
+     *
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     * @throws \Exception
+     */
     private function jsonMulticall($requests) {
 
         $expected_ids = array();
@@ -433,8 +460,16 @@ class RpcClient {
     }
 
     /**
-     * @todo    Fix xmlrpc_encode_request base64 not recognized correctly
+     * Perform an xml call
      *
+     * @param   array   $request
+     * 
+     * @return  mixed
+     *
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     * @throws \Comodojo\Exception\XmlrpcException
+     * @throws \Exception
      */
     private function xmlCall($request) {
 
@@ -505,6 +540,18 @@ class RpcClient {
 
     }
 
+    /**
+     * Perform an xml multicall
+     *
+     * @param   array   $request
+     * 
+     * @return  array
+     *
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     * @throws \Comodojo\Exception\XmlrpcException
+     * @throws \Exception
+     */
     private function xmlMulticall($requests) {
 
         $requests = self::splitMulticallXmlRequests($requests);
@@ -572,6 +619,17 @@ class RpcClient {
 
     }
 
+    /**
+     * Send pre-econded request to server
+     *
+     * @param   string   $data
+     * @param   string   $content_type
+     * 
+     * @return  string
+     *
+     * @throws \Comodojo\Exception\RpcException
+     * @throws \Comodojo\Exception\HttpException
+     */
     private function performCall($data, $content_type) {
 
         if ( $this->encrypt !== false ) {
@@ -607,13 +665,25 @@ class RpcClient {
 
     }
 
-    static private function phpXmlrpcAvailable() {
+    /**
+     * Check native encoder availability
+     *
+     * @return  bool
+     */
+    private static function phpXmlrpcAvailable() {
 
         return ( function_exists('xmlrpc_encode_request') AND self::$useNativeEncoder );
 
     }
 
-    static private function splitMulticallXmlRequests($requests) {
+    /**
+     * Split multicall xml requests
+     *
+     * @param   array    $requests
+     * 
+     * @return  array
+     */
+    private static function splitMulticallXmlRequests($requests) {
 
         $return = array();
 
@@ -638,7 +708,14 @@ class RpcClient {
 
     }
 
-    static private function composeJsonRequest($request) {
+    /**
+     * Compose a json request
+     *
+     * @param   array    $requests
+     * 
+     * @return  array
+     */
+    private static function composeJsonRequest($request) {
 
         $return = array(
             "jsonrpc"   =>  "2.0",
@@ -668,7 +745,14 @@ class RpcClient {
 
     }
     
-    static private function checkEncryptedResponseConsistency($data) {
+    /**
+     * Check if an encrypted envelop is consisent or not
+     *
+     * @param   string    $data
+     * 
+     * @return  bool
+     */
+    private static function checkEncryptedResponseConsistency($data) {
         
         return substr($data,0,27) == 'comodojo_encrypted_response' ? true : false;
         
