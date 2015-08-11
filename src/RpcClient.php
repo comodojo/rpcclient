@@ -395,7 +395,7 @@ class RpcClient {
     /**
      * Perform a json multicall
      *
-     * @param   array   $request
+     * @param   array   $requests
      * 
      * @return  array
      *
@@ -543,7 +543,7 @@ class RpcClient {
     /**
      * Perform an xml multicall
      *
-     * @param   array   $request
+     * @param   array   $requests
      * 
      * @return  array
      *
