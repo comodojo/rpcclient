@@ -72,7 +72,7 @@ class RpcClient {
      *
      * @var string
      */
-    private $supported_protocols = array("XML","JSON");
+    private $supported_protocols = array("XML", "JSON");
 
     // internals
 
@@ -99,8 +99,7 @@ class RpcClient {
             
             $this->sender->setHttpMethod("POST");
 
-        }
-        catch (HttpException $he) {
+        } catch (HttpException $he) {
 
             throw $he;
 
@@ -176,7 +175,7 @@ class RpcClient {
      *
      * @return  \Comodojo\RpcClient\RpcClient
      */
-    final public function setXmlEncoder($mode=true) {
+    final public function setXmlEncoder($mode = true) {
         
         if ( $mode === false ) $this->useNativeEncoder = true;
         
@@ -198,7 +197,7 @@ class RpcClient {
      */
     final public function setValueType(&$value, $type) {
 
-        if ( empty($value) OR !in_array(strtolower($type), array("base64","datetime","cdata")) ) throw new Exception("Invalid value type");
+        if ( empty($value) OR !in_array(strtolower($type), array("base64", "datetime", "cdata")) ) throw new Exception("Invalid value type");
 
         $this->special_types[$value] = strtolower($type);
 
@@ -217,7 +216,7 @@ class RpcClient {
      * 
      * @throws  \Exception
      */
-    final public function addRequest($method, $parameters=array(), $id=true) {
+    final public function addRequest($method, $parameters = array(), $id = true) {
 
         if ( empty($method) OR !is_scalar($method) ) throw new Exception("Invalid method (not scalar or empty)");
         
@@ -240,7 +239,7 @@ class RpcClient {
      *
      * @return  \Comodojo\RpcClient\RpcClient
      */
-    final public function setAutoclean($mode=true) {
+    final public function setAutoclean($mode = true) {
 
         $this->autoclean = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
 
@@ -304,7 +303,7 @@ class RpcClient {
 
             throw $he;
 
-        }  catch (RpcException $re) {
+        } catch (RpcException $re) {
 
             throw $re;
 
@@ -364,15 +363,13 @@ class RpcClient {
 
                 if ( is_null($response) ) throw new Exception("Incomprehensible or empty response");
 
-                else if ( isset($response["error"])) throw new RpcException($response["error"]["message"], $response["error"]["code"]);
+                else if ( isset($response["error"]) ) throw new RpcException($response["error"]["message"], $response["error"]["code"]);
                 
                 else if ( $response["id"] != $id ) throw new Exception("Invalid response ID received");
 
                 else $return = $response["result"];
 
-            }
-
-            else $return = true;
+            } else $return = true;
 
         } catch (HttpException $he) {
 
@@ -411,7 +408,7 @@ class RpcClient {
 
         $batch_response = array();
 
-        foreach ($requests as $request) {
+        foreach ( $requests as $request ) {
             
             list($json_request, $id) = self::composeJsonRequest($request);
 
@@ -441,11 +438,11 @@ class RpcClient {
 
             if ( is_null($response) ) throw new Exception("Incomprehensible or empty response");
 
-            foreach ($expected_ids as $key => $id) {
+            foreach ( $expected_ids as $key => $id ) {
                 
                 if ( !isset($response[$key]) ) $batch_response[$key] = array("error" => array("code" => null, "message" => "Empty response"));
 
-                else if ( isset($response[$key]["error"])) $batch_response[$key] = array("error" => $response["error"]);
+                else if ( isset($response[$key]["error"]) ) $batch_response[$key] = array("error" => $response["error"]);
 
                 else if ( $response[$key]["id"] != $id ) $batch_response[$key] = array("error" => array("code" => null, "message" => "Invalid response ID received"));
 
@@ -477,7 +474,7 @@ class RpcClient {
         
             if ( self::phpXmlrpcAvailable() ) {
 
-                foreach ($this->special_types as $key => $value) xmlrpc_set_type($key, $value);
+                foreach ( $this->special_types as $key => $value ) xmlrpc_set_type($key, $value);
 
                 $real_request = xmlrpc_encode_request($request["METHOD"], $request["PARAMETERS"], array(
                     'encoding' => $this->encoding,
@@ -489,7 +486,7 @@ class RpcClient {
 
                 $encoder = new XmlrpcEncoder();
 
-                foreach ($this->special_types as $key => $value) $encoder->setValueType($key, $value); 
+                foreach ( $this->special_types as $key => $value ) $encoder->setValueType($key, $value); 
 
                 $real_request = $encoder->setEncoding($this->encoding)->encodeCall($request["METHOD"], $request["PARAMETERS"]);
 
@@ -501,7 +498,7 @@ class RpcClient {
 
                 $decoded = xmlrpc_decode($received);
 
-                if (is_array($decoded) && xmlrpc_is_fault($decoded)) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
+                if ( is_array($decoded) && xmlrpc_is_fault($decoded) ) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
 
                 $return = $decoded;
 
@@ -580,7 +577,7 @@ class RpcClient {
 
                 $decoded = xmlrpc_decode($received);
 
-                if (is_array($decoded) && xmlrpc_is_fault($decoded)) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
+                if ( is_array($decoded) && xmlrpc_is_fault($decoded) ) throw new RpcException($decoded['faultString'], $decoded['faultCode']);
 
                 $return = $decoded;
 
@@ -638,7 +635,7 @@ class RpcClient {
 
             $aes->setKey($this->encrypt);
 
-            $data = 'comodojo_encrypted_request-'.base64_encode( $aes->encrypt($data) );
+            $data = 'comodojo_encrypted_request-'.base64_encode($aes->encrypt($data));
 
         }
     
@@ -646,8 +643,7 @@ class RpcClient {
 
             $response = $this->sender->setContentType($content_type)->send($data);
 
-        }
-        catch (HttpException $he) {
+        } catch (HttpException $he) {
 
             throw $he;
 
@@ -657,11 +653,9 @@ class RpcClient {
             
             if ( self::checkEncryptedResponseConsistency($response) === false ) throw new RpcException("Inconsistent encrypted response received");
         
-            return $aes->decrypt( base64_decode( substr($response,28) ) );
+            return $aes->decrypt(base64_decode(substr($response, 28)));
            
-        }
-
-        else return $response;
+        } else return $response;
 
     }
 
@@ -672,7 +666,7 @@ class RpcClient {
      */
     private static function phpXmlrpcAvailable() {
 
-        return ( function_exists('xmlrpc_encode_request') AND self::$useNativeEncoder );
+        return (function_exists('xmlrpc_encode_request') AND self::$useNativeEncoder);
 
     }
 
@@ -689,7 +683,7 @@ class RpcClient {
 
         if ( self::phpXmlrpcAvailable() ) {
 
-            foreach ($requests as $request) {
+            foreach ( $requests as $request ) {
                 
                 array_push($return, array(
                     "methodName"    =>  $request["METHOD"],
@@ -700,7 +694,7 @@ class RpcClient {
 
         } else {
 
-            foreach ($requests as $request) $return[$request["METHOD"]] = $request["PARAMETERS"];
+            foreach ( $requests as $request ) $return[$request["METHOD"]] = $request["PARAMETERS"];
 
         }
     
@@ -711,7 +705,7 @@ class RpcClient {
     /**
      * Compose a json request
      *
-     * @param   array    $requests
+     * @param   array    $request
      * 
      * @return  array
      */
@@ -729,17 +723,13 @@ class RpcClient {
 
             $id = $return["id"];
 
-        }
-
-        else if ( is_scalar($request["ID"]) ) {
+        } else if ( is_scalar($request["ID"]) ) {
 
             $return["id"] = $request["ID"];
 
             $id = $return["id"];
 
-        }
-
-        else $id = null;
+        } else $id = null;
 
         return array($return, $id);
 
@@ -754,7 +744,7 @@ class RpcClient {
      */
     private static function checkEncryptedResponseConsistency($data) {
         
-        return substr($data,0,27) == 'comodojo_encrypted_response' ? true : false;
+        return substr($data, 0, 27) == 'comodojo_encrypted_response' ? true : false;
         
     }
     
