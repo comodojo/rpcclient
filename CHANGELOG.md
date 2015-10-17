@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.1.1
+
+### Fixed
+- phpseclib dependency in composer.json
+
+### Other
+- comodojo/exceptions as a dependency
+
 ## Version 1.1.0
 
 ### Added

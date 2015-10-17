@@ -7,7 +7,7 @@ use \Exception;
 use \Comodojo\Httprequest\Httprequest;
 use \Comodojo\Xmlrpc\XmlrpcEncoder;
 use \Comodojo\Xmlrpc\XmlrpcDecoder;
-use \phpseclib\Crypt\AES;
+use \Crypt_AES;
 
 /** 
  * Comodojo RPC client. It's able to talk in XML and JSON (2.0).
@@ -631,7 +631,7 @@ class RpcClient {
 
         if ( $this->encrypt !== false ) {
 
-            $aes = new AES();
+            $aes = new Crypt_AES();
 
             $aes->setKey($this->encrypt);
 
