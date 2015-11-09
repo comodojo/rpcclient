@@ -4,6 +4,7 @@
 
 ### Fixed
 - phpseclib dependency in composer.json
+- duplicated method support in xml multicall
 
 ### Other
 - comodojo/exceptions as a dependency
