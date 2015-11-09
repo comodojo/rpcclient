@@ -201,7 +201,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString_0, $result[0][0]);
         $this->assertSame($echoString_1, $result[1][0]);
         $this->assertSame($echoString_2, $result[2][0]);

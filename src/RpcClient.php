@@ -694,7 +694,7 @@ class RpcClient {
 
         } else {
 
-            foreach ( $requests as $request ) $return[$request["METHOD"]] = $request["PARAMETERS"];
+            foreach ( $requests as $request ) $return[] = array($request["METHOD"], $request["PARAMETERS"]);
 
         }
     
