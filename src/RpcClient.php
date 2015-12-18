@@ -81,6 +81,8 @@ class RpcClient {
     private $requests = array();
 
     private $special_types = array();
+
+    private $current_request = 0;
     
     /**
      * Class constructor
@@ -199,7 +201,7 @@ class RpcClient {
 
         if ( empty($value) OR !in_array(strtolower($type), array("base64", "datetime", "cdata")) ) throw new Exception("Invalid value type");
 
-        $this->special_types[$value] = strtolower($type);
+        $this->special_types[$this->current_request][$value] = strtolower($type);
 
         return $this;
 
@@ -222,11 +224,13 @@ class RpcClient {
         
         if ( !is_array($parameters) ) throw new Exception("Bad parameters (not array)");
 
-        array_push($this->requests, array(
+        $position = array_push($this->requests, array(
             "METHOD"    =>  $method,
             "PARAMETERS"=>  $parameters,
             "ID"        =>  $id
         ));
+
+        $this->current_request = $position+1;
 
         return $this;
 
