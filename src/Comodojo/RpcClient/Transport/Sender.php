@@ -7,9 +7,9 @@ use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
 use \Exception;
 
-class Request {
+class Sender {
 
-    private $sender = null;
+    private $transport = null;
 
     private $logger = null;
 
@@ -21,9 +21,9 @@ class Request {
 
         try {
 
-            $this->sender = new Httprequest($server);
-            
-            $this->sender->setHttpMethod("POST");
+            $this->transport = new Httprequest($server);
+
+            $this->transport->setHttpMethod("POST");
 
         } catch (HttpException $he) {
 
@@ -37,9 +37,9 @@ class Request {
 
     }
 
-    public function sender() {
+    public function transport() {
 
-        return $this->sender;
+        return $this->transport;
 
     }
 
@@ -54,7 +54,7 @@ class Request {
      *
      * @param   string   $data
      * @param   string   $content_type
-     * 
+     *
      * @return  string
      *
      * @throws \Comodojo\Exception\RpcException
@@ -64,7 +64,7 @@ class Request {
 
         try {
 
-            $this->logger->notice("Sending data to ".$this->sender);
+            $this->logger->notice("Sending data to ".$this->transport);
 
             $this->logger->debug("Original request data dump ", $data);
 
@@ -72,7 +72,7 @@ class Request {
 
             $this->logger->debug("Real request data dump ", $data);
 
-            $response = $this->sender->setContentType($content_type)->send($data);
+            $response = $this->transport->setContentType($content_type)->send($data);
 
             $this->logger->debug("Real response data dump ", $response);
 
@@ -129,7 +129,7 @@ class Request {
         if ( !empty($key) && is_string($key) ) {
 
             if ( self::checkEncryptedResponseConsistency($data) === false ) throw new RpcException("Inconsistent encrypted response received");
-        
+
             $return = $this->aes->decrypt(base64_decode(substr($response, 28)));
 
         } else {
@@ -146,13 +146,13 @@ class Request {
      * Check if an encrypted envelop is consisent or not
      *
      * @param   string    $data
-     * 
+     *
      * @return  bool
      */
     private static function checkEncryptedResponseConsistency($data) {
-        
+
         return substr($data, 0, 27) == 'comodojo_encrypted_response' ? true : false;
-        
+
     }
 
 }
