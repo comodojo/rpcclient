@@ -60,6 +60,22 @@ class RpcRequest {
 
     }
 
+    public function setSpecialType(&$value, $type) {
+
+        $type = strtolower($type);
+
+        if ( empty($value) OR !in_array($type, array("base64", "datetime", "cdata")) ) {
+
+            throw new Exception("Invalid value type");
+
+        }
+
+        $this->special_types[$value] = $type;
+
+        return $this;
+
+    }
+
     public function setId($id = null) {
 
         if ( is_null($id) || is_int($id) || is_bool($id) ) {
@@ -88,6 +104,12 @@ class RpcRequest {
 
     }
 
+    public function getSpecialTypes() {
+
+        return $this->special_types;
+
+    }
+
     public function getId() {
 
         return $this->id;
@@ -100,25 +122,15 @@ class RpcRequest {
 
     }
 
-    final public function setSpecialType(&$value, $type) {
+    public function toArray() {
 
-        $type = strtolower($type);
-
-        if ( empty($value) OR !in_array($type, array("base64", "datetime", "cdata")) ) {
-
-            throw new Exception("Invalid value type");
-
-        }
-
-        $this->special_types[$value] = $type;
-
-        return $this;
-
-    }
-
-    public function getSpecialTypes() {
-
-        return $this->special_types;
+        return array(
+            'uid' => $this->uid,
+            'method' => $this->method,
+            'parameters' => $this->parameters,
+            'special_types' => $this->special_types,
+            'id' => $this->id
+        );
 
     }
 

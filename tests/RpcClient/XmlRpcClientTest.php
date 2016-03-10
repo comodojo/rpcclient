@@ -38,7 +38,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         $this->assertArrayHasKey("json-rpc", $result);
 
     }
-/*
+
     public function testInteropEchoTestsEchoString() {
 
         $echoString = "Hello comodojo!";
@@ -159,7 +159,11 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         try {
 
-            $this->rpch->setValueType($echo[0], "base64")->addRequest("interopEchoTests.echoBase64", $echo);
+            $request = RpcRequest::create("interopEchoTests.echoBase64", $echo);
+
+            $request->setSpecialType($echo[0], "base64");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
@@ -175,7 +179,11 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         try {
 
-            $this->rpch->setValueType($time, "datetime")->addRequest("interopEchoTests.echoDate", array($time));
+            $request = RpcRequest::create("interopEchoTests.echoDate", array($time));
+
+            $request->setSpecialType($time, "datetime");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
@@ -191,26 +199,36 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         $echoString_1 = array("Hello", "comodojo", "!");
         $echoString_2 = 42;
         $echoString_3 = array(42, 10, 100);
+        $time = time();
 
         try {
 
             $this->rpch
-                ->addRequest("interopEchoTests.echoString", array($echoString_0))
-                ->addRequest("interopEchoTests.echoStringArray", array($echoString_1))
-                ->addRequest("interopEchoTests.echoInteger", array($echoString_2))
-                ->addRequest("interopEchoTests.echoIntegerArray", array($echoString_3));
+                ->addRequest( RpcRequest::create("interopEchoTests.echoString", array($echoString_0)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoStringArray", array($echoString_1)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoInteger", array($echoString_2)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoIntegerArray", array($echoString_3)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoIntegerArray", array($echoString_0)) );
+
+            $request = RpcRequest::create("interopEchoTests.echoDate", array($time));
+
+            $request->setSpecialType($time, "datetime");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
 
-        $this->assertSame($echoString_0, $result[0][0]);
-        $this->assertSame($echoString_1, $result[1][0]);
-        $this->assertSame($echoString_2, $result[2][0]);
-        $this->assertSame($echoString_3, $result[3][0]);
+        $this->assertSame($echoString_0, $result[0]);
+        $this->assertSame($echoString_1, $result[1]);
+        $this->assertSame($echoString_2, $result[2]);
+        $this->assertSame($echoString_3, $result[3]);
+        $this->assertSame(3, $result[4]['faultCode']);
+        $this->assertSame($time, $result[5]);
 
     }
-*/
+
     private function commonRequests($method, $parameters=array()) {
 
         try {
@@ -218,6 +236,8 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
             $request = RpcRequest::create($method, $parameters);
 
             $this->rpch->addRequest($request);
+
+            $this->rpch->transport()->setTimeout(3);
 
             $result = $this->rpch->send();
 

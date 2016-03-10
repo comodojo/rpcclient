@@ -2,11 +2,11 @@
 
 use \Comodojo\RpcClient\Processor\JsonProcessor;
 use \Comodojo\RpcClient\Processor\XmlProcessor;
-use \Comodojo\RpcClient\Transport\Sender;
+use \Comodojo\RpcClient\Components\Transport;
 use \Comodojo\RpcClient\Components\Protocol;
 use \Comodojo\RpcClient\Components\Encryption;
 use \Comodojo\RpcClient\Components\Encoding;
-use \Comodojo\RpcClient\Components\Request;
+use \Comodojo\RpcClient\Components\RequestManager;
 use \Comodojo\RpcClient\Utils\NullLogger;
 use \Comodojo\Exception\RpcException;
 use \Comodojo\Exception\HttpException;
@@ -38,7 +38,6 @@ class RpcClient {
     use Protocol;
     use Encryption;
     use Encoding;
-    use Request;
 
     const JSONRPC = "JSON";
 
@@ -46,9 +45,18 @@ class RpcClient {
 
     // internals
 
-    private $sender;
+    /**
+     * Autoclean requests
+     *
+     * @var string
+     */
+    private $autoclean = true;
+
+    private $transport;
 
     private $logger;
+
+    private $request;
 
     /**
      * Class constructor
@@ -63,9 +71,11 @@ class RpcClient {
 
         $this->logger = is_null($logger) ? new NullLogger() : $logger;
 
+        $this->request = new RequestManager();
+
         try {
 
-            $this->sender = new Sender($server, $this->logger);
+            $this->transport = new Transport($server);
 
         } catch (HttpException $he) {
 
@@ -75,29 +85,50 @@ class RpcClient {
 
     }
 
-    public function logger() {
+    final public function logger() {
 
         return $this->logger;
 
     }
 
-    public function sender() {
+    final public function transport() {
 
-        return $this->sender;
+        return $this->transport;
+
+    }
+
+    final public function request() {
+
+        return $this->request;
 
     }
 
     /**
-     * Get the transport layer
+     * Set autoclean on/off
      *
-     * This method will return the Httprequest object in order to customize transport
-     * options before sending request(s)
+     * @param   bool   $mode  If true, requests will be removed from queue at each send()
      *
-     * @return  \Comodojo\Httprequest\Httprequest
+     * @return  \Comodojo\RpcClient\RpcClient
      */
-    final public function getTransport() {
+    public function setAutoclean($mode = true) {
 
-        return $this->sender->transport();
+        $this->autoclean = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
+
+        return $this;
+
+    }
+
+    public function getAutoclean() {
+
+        return $this->autoclean;
+
+    }
+
+    public function addRequest(RpcRequest $request) {
+
+        $this->request->add($request);
+
+        return $this;
 
     }
 
@@ -113,7 +144,7 @@ class RpcClient {
      */
     public function send() {
 
-        $requests = $this->getRequest();
+        $requests = $this->request->get();
 
         if ( empty($requests) ) throw new Exception("No request to send");
 
@@ -135,7 +166,7 @@ class RpcClient {
 
             $payload = $processor->encode($requests);
 
-            $response = $this->sender()->setContentType($content_type)->performCall($payload, $this->getEncryption());
+            $response = $this->transport()->performCall($this->logger, $payload, $content_type, $this->getEncryption());
 
             $result = $processor->decode($response);
 
@@ -157,7 +188,7 @@ class RpcClient {
 
         }
 
-        if ( $this->autoclean ) $this->clean();
+        if ( $this->autoclean ) $this->request->clean();
 
         return $result;
 

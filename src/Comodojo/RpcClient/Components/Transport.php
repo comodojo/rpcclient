@@ -1,4 +1,4 @@
-<?php namespace Comodojo\RpcClient\Transport;
+<?php namespace Comodojo\RpcClient\Components;
 
 use \Psr\Log\LoggerInterface;
 use \Comodojo\Httprequest\Httprequest;
@@ -7,47 +7,9 @@ use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
 use \Exception;
 
-class Sender {
-
-    private $transport = null;
-
-    private $logger = null;
+class Transport extends Httprequest {
 
     private $aes = null;
-
-    public function __construct($server, LoggerInterface $logger) {
-
-        $this->logger = $logger;
-
-        try {
-
-            $this->transport = new Httprequest($server);
-
-            $this->transport->setHttpMethod("POST");
-
-        } catch (HttpException $he) {
-
-            throw $he;
-
-        } catch (Exception $e) {
-
-            throw $e;
-
-        }
-
-    }
-
-    public function transport() {
-
-        return $this->transport;
-
-    }
-
-    public function logger() {
-
-        return $this->logger();
-
-    }
 
     /**
      * Send pre-econded request to server
@@ -60,41 +22,43 @@ class Sender {
      * @throws \Comodojo\Exception\RpcException
      * @throws \Comodojo\Exception\HttpException
      */
-    public function performCall($data, $content_type, $encrypt=false) {
+    public function performCall($logger, $data, $content_type, $encrypt=false) {
+
+        $this->setHttpMethod("POST");
 
         try {
 
-            $this->logger->notice("Sending data to ".$this->transport);
+            $logger->notice("Sending RPC data");
 
-            $this->logger->debug("Original request data dump ", $data);
+            $logger->debug("Original request data dump: ".$data);
 
             $data = $this->can($data, $encrypt);
 
-            $this->logger->debug("Real request data dump ", $data);
+            $logger->debug("Real request data dump: ".$data);
 
-            $response = $this->transport->setContentType($content_type)->send($data);
+            $response = $this->setContentType($content_type)->send($data);
 
-            $this->logger->debug("Real response data dump ", $response);
+            $logger->debug("Real response data dump: ".$response);
 
             $return = $this->uncan($response, $encrypt);
 
-            $this->logger->debug("Decoded response data dump ", $return);
+            $logger->debug("Decoded response data dump: ".$return);
 
         } catch (HttpException $he) {
 
-            $this->logger->error("HTTP Transport error: ".$he->getMessage());
+            $logger->error("HTTP Transport error: ".$he->getMessage());
 
             throw $he;
 
         } catch (RpcException $re) {
 
-            $this->logger->error("RPC Client error: ".$re->getMessage());
+            $logger->error("RPC Client error: ".$re->getMessage());
 
             throw $re;
 
         } catch (Exception $e) {
 
-            $this->logger->critical("Generic Client error: ".$e->getMessage());
+            $logger->critical("Generic Client error: ".$e->getMessage());
 
             throw $e;
 

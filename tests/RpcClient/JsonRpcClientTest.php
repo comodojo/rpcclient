@@ -1,5 +1,8 @@
 <?php
 
+use \Comodojo\RpcClient\RpcClient;
+use \Comodojo\RpcClient\RpcRequest;
+
 class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
     protected $rpch = null;
@@ -7,12 +10,12 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
     public function setUp() {
 
         try {
-            
-            $this->rpch = new \Comodojo\RpcClient\RpcClient( "http://localhost" );
+
+            $this->rpch = new RpcClient( "http://localhost" );
 
             $this->rpch->setProtocol("JSON");
 
-            $transport = $this->rpch->getTransport();
+            $transport = $this->rpch->transport();
 
             $transport->setPort(28080);
 
@@ -20,7 +23,7 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
             //$transport->setProxy("http://127.0.0.1:8080");
 
         } catch (\Exception $e) {
-            
+
             throw $e;
 
         }
@@ -31,23 +34,23 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         $string = "comodojo";
 
-        try { 
+        try {
 
-            $this->rpch->addRequest("echo", array($string));
+            $this->rpch->addRequest( RpcRequest::create("echo", array($string)) );
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($string, $result);
 
     }
 
     public function testNotification() {
 
-        try { 
+        try {
 
-            $this->rpch->addRequest("notify", array("comodojo"), null);
+            $this->rpch->addRequest( RpcRequest::create("notify", array("comodojo"), null) );
 
             $result = $this->rpch->send();
 
@@ -59,14 +62,14 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
     public function testAdd() {
 
-        try { 
+        try {
 
-            $this->rpch->addRequest("add", array(40,2));
+            $this->rpch->addRequest( RpcRequest::create("add", array(40,2)) );
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame(42, $result);
 
     }
@@ -75,17 +78,16 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         $string = "comodojo";
 
-        try { 
+        try {
 
             $this->rpch
-                ->addRequest("add", array(40,2))
-                ->addRequest("echo", array($string)
-            );
+                ->addRequest( RpcRequest::create("add", array(40,2)) )
+                ->addRequest( RpcRequest::create("echo", array($string) ));
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame(42, $result[0]['result']);
         $this->assertSame($string, $result[1]['result']);
 

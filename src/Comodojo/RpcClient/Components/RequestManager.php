@@ -21,37 +21,9 @@ use \Exception;
  * THE SOFTWARE.
  */
 
-trait Request {
-
-    /**
-     * Autoclean requests
-     *
-     * @var string
-     */
-    private $autoclean = true;
+class RequestManager {
 
     private $requests = array();
-
-    /**
-     * Set autoclean on/off
-     *
-     * @param   bool   $mode  If true, requests will be removed from queue at each send()
-     *
-     * @return  \Comodojo\RpcClient\RpcClient
-     */
-    public function setAutoclean($mode = true) {
-
-        $this->autoclean = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
-
-        return $this;
-
-    }
-
-    public function getAutoclean() {
-
-        return $this->autoclean;
-
-    }
 
     public function clean() {
 
@@ -61,25 +33,27 @@ trait Request {
 
     }
 
-    public function addRequest(RpcRequest $request) {
+    public function add(RpcRequest $request) {
 
-        $uid = $request->getUniqueId();
+        // $uid = $request->getUniqueId();
 
-        $this->requests[$uid] = $request;
+        // $this->requests[$uid] = $request;
+
+        $this->requests[] = $request;
 
         return $this;
 
     }
 
-    public function getRequest($uid = null) {
+    public function get($uid = null) {
 
         if ( is_null($uid) ) {
 
             return $this->requests;
 
-        } else if ( array_key_exists($uid, $this->requests) ) {
+        } else if ( $key = $this->searchByUid($uid) != null ) {
 
-            return $this->requests[$uid];
+            return $this->requests[$key];
 
         } else {
 
@@ -89,7 +63,7 @@ trait Request {
 
     }
 
-    public function deleteRequest($uid = null) {
+    public function delete($uid = null) {
 
         if ( is_null($uid) ) {
 
@@ -97,9 +71,9 @@ trait Request {
 
             return true;
 
-        } else if ( array_key_exists($uid, $this->requests) ) {
+        } else if ( $key = $this->searchByUid($uid) != null ) {
 
-            unset($this->requests[$uid]);
+            unset($this->requests[$key]);
 
             return true;
 
@@ -108,6 +82,19 @@ trait Request {
             return false;
 
         }
+
+    }
+
+    private function searchByUid($uid) {
+
+        $element = array_filter(
+            $this->requests,
+            function ($e) {
+                return $e->getUid() == $uid;
+            }
+        );
+
+        return sizeof($element) == 1 ? array_keys($element)[0] : null;
 
     }
 

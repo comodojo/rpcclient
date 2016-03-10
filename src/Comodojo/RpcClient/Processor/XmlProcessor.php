@@ -19,6 +19,8 @@ class XmlProcessor implements ProcessorInterface {
 
     private $requests;
 
+    private $isMulticall = false;
+
     public function __construct($encoding, LoggerInterface $logger) {
 
         $this->encoding = $encoding;
@@ -33,11 +35,13 @@ class XmlProcessor implements ProcessorInterface {
 
     public function encode($requests) {
 
-        $this->requests = $requests;
+        $requests = array_values($requests);
+
+        $this->isMulticall = sizeof($requests) > 1 ? true : false;
 
         try {
 
-            $payload = ( sizeof($requests) > 1 ) ? $this->encodeMulticall($requests) : $this->encodeSingleCall($requests[0]);
+            $payload = $this->isMulticall ? $this->encodeMulticall($requests) : $this->encodeSingleCall($requests[0]);
 
         } catch (XmlrpcException $xe) {
 
@@ -63,17 +67,15 @@ class XmlProcessor implements ProcessorInterface {
 
         }
 
-        return $content;
+        return $this->isMulticall ? self::normalizeContent($content) : $content;
 
     }
 
     private function encodeSingleCall(RpcRequest $request) {
 
-        $this->requests = $request;
+        $this->logger->notice("Performing a single XML call");
 
-    	$this->logger->notice("Performing a single XML call");
-
-    	$this->logger->debug("Data dump before encoding", $request);
+    	$this->logger->debug("Data dump before encoding", $request->toArray());
 
         try {
 
@@ -93,7 +95,7 @@ class XmlProcessor implements ProcessorInterface {
 
         }
 
-        $this->logger->debug("Data dump after encoding", $encoded_request);
+        $this->logger->debug("Data dump after encoding: ".$encoded_request);
 
         return $encoded_request;
 
@@ -112,8 +114,6 @@ class XmlProcessor implements ProcessorInterface {
      * @throws \Exception
      */
     private function encodeMulticall($requests) {
-
-        $this->requests = $requests;
 
         $composed_requests = array();
 
@@ -143,7 +143,25 @@ class XmlProcessor implements ProcessorInterface {
 
         }
 
-        return $encoded_request;
+        return $encoded_requests;
+
+    }
+
+    private static function normalizeContent($content) {
+
+        return array_map(function($value) {
+
+            if (
+                is_array($value) &&
+                sizeof($value) == 1 &&
+                isset($value[0])
+            ) {
+                return $value[0];
+            }
+
+            return $value;
+
+        }, $content);
 
     }
 

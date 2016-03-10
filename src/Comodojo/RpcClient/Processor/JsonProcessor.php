@@ -13,9 +13,9 @@ class JsonProcessor implements ProcessorInterface {
 
     private $encoder;
 
-    private $requests;
+    private $ids = array();
 
-    private $ids;
+    private $isMulticall = false;
 
     public function __construct($encoding, LoggerInterface $logger) {
 
@@ -27,7 +27,9 @@ class JsonProcessor implements ProcessorInterface {
 
     public function encode($requests) {
 
-        $this->requests = $requests
+        $requests = array_values($requests);
+
+        $this->isMulticall = sizeof($requests) > 1 ? true : false;
 
         $payload = array();
 
@@ -49,15 +51,19 @@ class JsonProcessor implements ProcessorInterface {
 
         try {
 
+            if ( sizeof($this->ids) == 0 ) {
+
+                return true;
+
+            }
+
             $content = json_decode($response, true);
 
             if ( is_null($content) ) throw new Exception("Incomprehensible or empty response");
 
-            if ( sizeof($this->requests) == 0 ) {
+            if ( $this->isMulticall === false ) {
 
-                $return = true;
-
-            } else if ( sizeof($this->requests) == 1 ) {
+                $content = $content[0];
 
                 if ( $content["id"] != $this->ids[0] ) throw new Exception("Invalid response ID received");
 
@@ -91,11 +97,11 @@ class JsonProcessor implements ProcessorInterface {
 
         }
 
-        return $content;
+        return $return;
 
     }
 
-    private static function composeJsonRequest(Request $request) {
+    private static function composeJsonRequest(RpcRequest $request) {
 
         $return = array(
             "jsonrpc"   =>  "2.0",
@@ -107,7 +113,7 @@ class JsonProcessor implements ProcessorInterface {
 
         if ( $rid === true ) {
 
-            $id = $return["id"] = $request->getUniqueId(),
+            $id = $return["id"] = $request->getUniqueId();
 
         } else if ( is_scalar($rid) ) {
 
