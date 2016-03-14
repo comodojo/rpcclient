@@ -11,8 +11,6 @@ class JsonProcessor implements ProcessorInterface {
 
     private $logger;
 
-    private $encoder;
-
     private $ids = array();
 
     private $isMulticall = false;

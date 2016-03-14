@@ -30,6 +30,11 @@ class RpcRequest {
 
     private $special_types = array();
 
+    /**
+     * Request's id
+     *
+     * @var boolean|integer
+     */
     private $id = true;
 
     private $uid;
@@ -64,7 +69,7 @@ class RpcRequest {
 
         $type = strtolower($type);
 
-        if ( empty($value) OR !in_array($type, array("base64", "datetime", "cdata")) ) {
+        if ( empty($value) || !in_array($type, array("base64", "datetime", "cdata")) ) {
 
             throw new Exception("Invalid value type");
 

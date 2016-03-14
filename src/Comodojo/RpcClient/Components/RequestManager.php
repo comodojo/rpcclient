@@ -89,7 +89,7 @@ class RequestManager {
 
         $element = array_filter(
             $this->requests,
-            function ($e) {
+            function ($e) use ($uid) {
                 return $e->getUid() == $uid;
             }
         );

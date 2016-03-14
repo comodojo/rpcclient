@@ -94,7 +94,7 @@ class Transport extends Httprequest {
 
             if ( self::checkEncryptedResponseConsistency($data) === false ) throw new RpcException("Inconsistent encrypted response received");
 
-            $return = $this->aes->decrypt(base64_decode(substr($response, 28)));
+            $return = $this->aes->decrypt(base64_decode(substr($data, 28)));
 
         } else {
 

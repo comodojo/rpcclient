@@ -42,7 +42,7 @@ trait Encryption {
 
         if ( empty($key) ) throw new Exception("Shared key cannot be empty");
 
-        $this->$encryption = $key;
+        $this->encryption = $key;
 
         return $this;
 

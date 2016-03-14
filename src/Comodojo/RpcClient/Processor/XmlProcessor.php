@@ -1,10 +1,11 @@
 <?php namespace Comodojo\RpcClient\Processor;
 
 use \Psr\Log\LoggerInterface;
-use \Comodojo\Exception\RpcException;
 use \Comodojo\RpcClient\RpcRequest;
 use \Comodojo\Xmlrpc\XmlrpcEncoder;
 use \Comodojo\Xmlrpc\XmlrpcDecoder;
+use \Comodojo\Exception\RpcException;
+use \Comodojo\Exception\XmlrpcException;
 use \Exception;
 
 class XmlProcessor implements ProcessorInterface {
@@ -16,8 +17,6 @@ class XmlProcessor implements ProcessorInterface {
     private $encoder;
 
     private $decoder;
-
-    private $requests;
 
     private $isMulticall = false;
 
