@@ -4,6 +4,8 @@
 
 An XML & JSON (2.0) RPC client with multicall support.
 
+*** This is the development branch.***
+
 ## Installation
 
 Install [composer](https://getcomposer.org/), then:
@@ -19,15 +21,15 @@ try {
 
 	// create RpcClient instance
     $client = new \Comodojo\RpcClient\RpcClient( "www.example.org/xmlrpc/" );
-    
+
     // add request to queue
     $client->addRequest( "my.method", array( "user"=>"john", "pass"=>"doe" ) );
-    
+
     // fire client and get results
     $result = $client->send();
 
 } catch (\Exception $e) {
-	
+
 	/* something did not work :( */
 
 }
@@ -41,18 +43,18 @@ try {
 
 	// create RpcClient instance
     $client = new \Comodojo\RpcClient\RpcClient( "www.example.org/jsonrpc/" );
-    
+
     // set JSON protocol
     $client->setProtocol("JSON");
-    
+
     // add request to queue
     $client->addRequest( "my.method", array( "user"=>"john", "pass"=>"doe" ) );
-    
+
     // fire client and get results
     $result = $client->send();
 
 } catch (\Exception $e) {
-	
+
 	/* something did not work :( */
 
 }
@@ -66,16 +68,16 @@ try {
 
 	// create RpcClient instance
     $client = new \Comodojo\RpcClient\RpcClient( "www.example.org/xmlrpc/" );
-    
+
     $client->addRequest( "my.method", array( "user"=>"john", "pass"=>"doe" ) )
            ->addRequest( "another.method", array( "test"=>true ) )
            ->addRequest( "last.method", array( "close"=>true, "value"=>42 ) );
-    
+
     // fire client and get results
     $result = $client->send();
 
 } catch (\Exception $e) {
-	
+
 	/* something did not work :( */
 
 }
@@ -88,35 +90,35 @@ try {
 
     ```php
         $client->setProtocol("JSON");
-        
+
     ```
 
 - Changing encoder characters encoding (default to utf-8):
 
     ```php
         $client->setEncoding("iso-8859-1");
-        
+
     ```
-    
+
 - Use native XML encoder/decoder ([PHP XML-RPC functions](http://php.net/manual/en/ref.xmlrpc.php)) instead of [comodojo/xmlrpc](https://github.com/comodojo/xmlrpc) (this will broke support for special value types):
 
     ```php
         $client->setXmlEncoder(false);
-        
+
     ```
 
 - Set autoclean mode off (remove requests from queue at each `send`) - default on:
 
     ```php
         $client->setAutoclean(false);
-        
+
     ```
-    
+
 - Use the NOT STANDARD encrypted transport (compatible with comodojo/rpcserver ONLY!):
 
     ```php
         $client->setEncryption("thisIsMyVeryLongEncryptionKey");
-        
+
     ```
 
 ## Declaring special value type
@@ -130,21 +132,21 @@ try {
 
 	// create RpcClient instance
     $client = new \Comodojo\RpcClient\RpcClient( "www.example.org/xmlrpc/" );
-    
-    $request_parameters = array( 
-        "user"=>"john", 
-        "pass"=>"doe", 
+
+    $request_parameters = array(
+        "user"=>"john",
+        "pass"=>"doe",
         "base_value"=>"SSBjaGVja2VkIGl0IHZlcnkgdGhvcm91Z2hseSwiIHNhaWQgdGhlIGNvbXB1dGVyLCAiYW5kIHRoYXQgcXVpdGUgZGVmaW5pdGVseSBpcyB0aGUgYW5zd2VyLiBJIHRoaW5rIHRoZSBwcm9ibGVtLCB0byBiZSBxdWl0ZSBob25lc3Qgd2l0aCB5b3UsIGlzIHRoYXQgeW91J3ZlIG5ldmVyIGFjdHVhbGx5IGtub3duIHdoYXQgdGhlIHF1ZXN0aW9uIGlzLg==" )
-    
+
     // add request to queue
     $client->setValueType($request_parameters["base_value"], "base64")
            ->addRequest( "my.method", $request_parameters );
-    
+
     // fire client and get results
     $result = $client->send();
 
 } catch (\Exception $e) {
-	
+
 	/* something did not work :( */
 
 }
@@ -180,18 +182,18 @@ try {
 
 	// create RpcClient instance
     $client = new \Comodojo\RpcClient\RpcClient( "www.example.org/xmlrpc/" );
-    
+
     // add request to queue
     $client->addRequest( "my.method", array( "user"=>"john", "pass"=>"doe" ) );
-    
+
     // Set port to 8080 and timeout to 5 secs:
     $client->getTransport()->setPort(8080)->setTimeout(5);
-    
+
     // fire client and get results
     $result = $client->send();
 
 } catch (\Exception $e) {
-	
+
 	/* something did not work :( */
 
 }
