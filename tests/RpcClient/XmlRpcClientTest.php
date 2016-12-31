@@ -237,7 +237,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
             $this->rpch->addRequest($request);
 
-            $this->rpch->transport()->setTimeout(3);
+            $this->rpch->getTransport()->setTimeout(3);
 
             $result = $this->rpch->send();
 

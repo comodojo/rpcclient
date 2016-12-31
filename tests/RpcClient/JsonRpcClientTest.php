@@ -15,7 +15,7 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
             $this->rpch->setProtocol("JSON");
 
-            $transport = $this->rpch->transport();
+            $transport = $this->rpch->getTransport();
 
             $transport->setPort(28080);
 

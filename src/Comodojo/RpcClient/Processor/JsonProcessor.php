@@ -5,23 +5,11 @@ use \Comodojo\Exception\RpcException;
 use \Comodojo\RpcClient\RpcRequest;
 use \Exception;
 
-class JsonProcessor implements ProcessorInterface {
-
-    private $encoding;
-
-    private $logger;
+class JsonProcessor extends AbstractProcessor {
 
     private $ids = array();
 
     private $isMulticall = false;
-
-    public function __construct($encoding, LoggerInterface $logger) {
-
-        $this->encoding = $encoding;
-
-        $this->logger = $logger;
-
-    }
 
     public function encode($requests) {
 

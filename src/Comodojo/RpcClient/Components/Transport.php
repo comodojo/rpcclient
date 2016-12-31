@@ -2,9 +2,9 @@
 
 use \Psr\Log\LoggerInterface;
 use \Comodojo\Httprequest\Httprequest;
-use \Crypt_AES;
 use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
+use \phpseclib\Crypt\AES;
 use \Exception;
 
 class Transport extends Httprequest {
@@ -22,7 +22,7 @@ class Transport extends Httprequest {
      * @throws \Comodojo\Exception\RpcException
      * @throws \Comodojo\Exception\HttpException
      */
-    public function performCall($logger, $data, $content_type, $encrypt=false) {
+    public function performCall(LoggerInterface $logger, $data, $content_type, $encrypt=false) {
 
         $this->setHttpMethod("POST");
 
@@ -72,7 +72,7 @@ class Transport extends Httprequest {
 
         if ( !empty($key) && is_string($key) ) {
 
-            $this->aes = new Crypt_AES();
+            $this->aes = new AES();
 
             $this->aes->setKey($key);
 

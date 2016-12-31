@@ -1,5 +1,6 @@
 <?php namespace Comodojo\RpcClient;
 
+use \Comodojo\RpcClient\Processor\ProcessorInterface;
 use \Comodojo\RpcClient\Processor\JsonProcessor;
 use \Comodojo\RpcClient\Processor\XmlProcessor;
 use \Comodojo\RpcClient\Components\Transport;
@@ -7,7 +8,8 @@ use \Comodojo\RpcClient\Components\Protocol;
 use \Comodojo\RpcClient\Components\Encryption;
 use \Comodojo\RpcClient\Components\Encoding;
 use \Comodojo\RpcClient\Components\RequestManager;
-use \Comodojo\RpcClient\Utils\NullLogger;
+use \Comodojo\Foundation\Logging\Manager as LogManager;
+use \Psr\Log\LoggerInterface;
 use \Comodojo\Exception\RpcException;
 use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\XmlrpcException;
@@ -58,6 +60,10 @@ class RpcClient {
 
     private $request;
 
+    private $json_processor;
+
+    private $xml_processor;
+
     /**
      * Class constructor
      *
@@ -65,13 +71,17 @@ class RpcClient {
      *
      * @throws \Comodojo\Exception\HttpException
      */
-    public function __construct($server, Logger $logger = null) {
+    public function __construct($server, LoggerInterface $logger = null) {
 
         if ( empty($server) ) throw new Exception("Invalid RPC server address");
 
-        $this->logger = is_null($logger) ? new NullLogger() : $logger;
+        $this->logger = is_null($logger) ? LogManager::create('rpcclient', false)->getLogger() : $logger;
 
         $this->request = new RequestManager();
+
+        $this->json_processor = new JsonProcessor($this->getEncoding(), $this->getLogger());
+
+        $this->xml_processor = new XmlProcessor($this->getEncoding(), $this->getLogger());
 
         try {
 
@@ -85,19 +95,19 @@ class RpcClient {
 
     }
 
-    final public function logger() {
+    public function getLogger() {
 
         return $this->logger;
 
     }
 
-    final public function transport() {
+    public function getTransport() {
 
         return $this->transport;
 
     }
 
-    final public function request() {
+    public function getRequest() {
 
         return $this->request;
 
@@ -132,6 +142,26 @@ class RpcClient {
 
     }
 
+    public function getPayload(ProcessorInterface $processor = null) {
+
+        $requests = $this->getRequest()->get();
+
+        if ( empty($requests) ) throw new Exception("No request to send");
+
+        $processor = is_null($processor) ? $this->getProcessor() : $processor;
+
+        try {
+
+            return $processor->encode($requests);
+
+        } catch (Exception $e) {
+
+            throw $e;
+
+        }
+
+    }
+
     /**
      * Send request(s) to server
      *
@@ -144,29 +174,17 @@ class RpcClient {
      */
     public function send() {
 
-        $requests = $this->request->get();
+        $protocol = $this->getProtocol();
 
-        if ( empty($requests) ) throw new Exception("No request to send");
+        $content_type = $protocol == self::XMLRPC ? "text/xml" : "application/json";
 
-        if ( $this->getProtocol() == self::XMLRPC ) {
-
-            $processor = new XmlProcessor($this->getEncoding(), $this->logger());
-
-            $content_type = "text/xml";
-
-        } else {
-
-            $processor = new JsonProcessor($this->getEncoding(), $this->logger());
-
-            $content_type = "application/json";
-
-        }
+        $processor = $this->getProcessor();
 
         try {
 
-            $payload = $processor->encode($requests);
+            $payload = $this->getPayload($processor);
 
-            $response = $this->transport()->performCall($this->logger, $payload, $content_type, $this->getEncryption());
+            $response = $this->getTransport()->performCall($this->logger, $payload, $content_type, $this->getEncryption());
 
             $result = $processor->decode($response);
 
@@ -188,9 +206,25 @@ class RpcClient {
 
         }
 
-        if ( $this->autoclean ) $this->request->clean();
+        if ( $this->getAutoclean() ) $this->getRequest()->clean();
 
         return $result;
+
+    }
+
+    private function getProcessor() {
+
+        if ( $this->getProtocol() == self::XMLRPC ) {
+
+            $processor = $this->xml_processor;
+
+        } else {
+
+            $processor = $this->json_processor;
+
+        }
+
+        return $processor->setEncoding($this->getEncoding());
 
     }
 

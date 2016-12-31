@@ -8,11 +8,7 @@ use \Comodojo\Exception\RpcException;
 use \Comodojo\Exception\XmlrpcException;
 use \Exception;
 
-class XmlProcessor implements ProcessorInterface {
-
-    private $encoding;
-
-    private $logger;
+class XmlProcessor extends AbstractProcessor {
 
     private $encoder;
 
@@ -22,9 +18,7 @@ class XmlProcessor implements ProcessorInterface {
 
     public function __construct($encoding, LoggerInterface $logger) {
 
-        $this->encoding = $encoding;
-
-        $this->logger = $logger;
+        parent::__construct($encoding, $logger);
 
         $this->encoder = new XmlrpcEncoder();
 
@@ -134,7 +128,7 @@ class XmlProcessor implements ProcessorInterface {
 
         try {
 
-            $encoded_requests = $this->encoder->setEncoding($this->encoding)->encodeMulticall($composed_requests);
+            $encoded_requests = $this->encoder->setEncoding($this->getEncoding())->encodeMulticall($composed_requests);
 
         } catch (XmlrpcException $xe) {
 
