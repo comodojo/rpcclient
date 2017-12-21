@@ -1,13 +1,14 @@
 <?php namespace Comodojo\RpcClient\Components;
 
-use \Psr\Log\LoggerInterface;
+use \Comodojo\RpcClient\Interfaces\Transport as TransportInterface;
 use \Comodojo\Httprequest\Httprequest;
+use \phpseclib\Crypt\AES;
+use \Psr\Log\LoggerInterface;
 use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
-use \phpseclib\Crypt\AES;
 use \Exception;
 
-class Transport extends Httprequest {
+class HttpTransport extends Httprequest implements TransportInterface {
 
     private $aes = null;
 
@@ -107,7 +108,7 @@ class Transport extends Httprequest {
     }
 
     /**
-     * Check if an encrypted envelop is consisent or not
+     * Check if an encrypted envelope is consisent or not
      *
      * @param   string    $data
      *

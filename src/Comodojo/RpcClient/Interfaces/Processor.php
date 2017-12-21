@@ -1,8 +1,8 @@
-<?php namespace Comodojo\RpcClient\Processor;
+<?php namespace Comodojo\RpcClient\Interfaces;
 
 use \Psr\Log\LoggerInterface;
 
-interface ProcessorInterface {
+interface Processor {
 
     public function __construct($encoding, LoggerInterface $logger);
 

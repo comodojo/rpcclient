@@ -1,9 +1,10 @@
 <?php namespace Comodojo\RpcClient;
 
-use \Comodojo\RpcClient\Processor\ProcessorInterface;
+use \Comodojo\RpcClient\Interfaces\Transport as TransportInterface;
+use \Comodojo\RpcClient\Interfaces\Processor as ProcessorInterface;
 use \Comodojo\RpcClient\Processor\JsonProcessor;
 use \Comodojo\RpcClient\Processor\XmlProcessor;
-use \Comodojo\RpcClient\Components\Transport;
+use \Comodojo\RpcClient\Components\HttpTransport;
 use \Comodojo\RpcClient\Components\Protocol;
 use \Comodojo\RpcClient\Components\Encryption;
 use \Comodojo\RpcClient\Components\Encoding;
@@ -71,7 +72,11 @@ class RpcClient {
      *
      * @throws \Comodojo\Exception\HttpException
      */
-    public function __construct($server, LoggerInterface $logger = null) {
+    public function __construct(
+        $server,
+        LoggerInterface $logger = null,
+        TransportInterface $transport = null
+    ) {
 
         if ( empty($server) ) throw new Exception("Invalid RPC server address");
 
@@ -85,9 +90,9 @@ class RpcClient {
 
         try {
 
-            $this->transport = new Transport($server);
+            $this->transport = empty($transport) ? new HttpTransport($server) : $transport;
 
-        } catch (HttpException $he) {
+        } catch (Exception $he) {
 
             throw $he;
 
@@ -184,7 +189,13 @@ class RpcClient {
 
             $payload = $this->getPayload($processor);
 
-            $response = $this->getTransport()->performCall($this->logger, $payload, $content_type, $this->getEncryption());
+            $response = $this->getTransport()
+                ->performCall(
+                    $this->logger,
+                    $payload,
+                    $content_type,
+                    $this->getEncryption()
+                );
 
             $result = $processor->decode($response);
 

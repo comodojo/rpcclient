@@ -1,6 +1,7 @@
 <?php namespace Comodojo\RpcClient\Processor;
 
-use Comodojo\RpcClient\Components\Encoding as EncodingTrait;
+use \Comodojo\RpcClient\Interfaces\Processor as ProcessorInterface;
+use \Comodojo\RpcClient\Components\Encoding as EncodingTrait;
 use \Psr\Log\LoggerInterface;
 
 abstract class AbstractProcessor implements ProcessorInterface {
