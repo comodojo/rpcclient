@@ -29,7 +29,7 @@ class HttpTransport extends Httprequest implements TransportInterface {
 
         try {
 
-            $logger->notice("Sending RPC data");
+            $logger->debug("Sending RPC data");
 
             $logger->debug("Original request data dump: ".$data);
 
