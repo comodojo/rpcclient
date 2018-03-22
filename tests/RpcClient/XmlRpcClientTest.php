@@ -1,5 +1,8 @@
 <?php
 
+use \Comodojo\RpcClient\RpcClient;
+use \Comodojo\RpcClient\RpcRequest;
+
 class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
     protected $rpch = null;
@@ -7,16 +10,15 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
     public function setUp() {
 
         try {
-            
-            $this->rpch = new \Comodojo\RpcClient\RpcClient( "http://phpxmlrpc.sourceforge.net/server.php" );
 
-            $transport = $this->rpch->getTransport();
+            $this->rpch = new RpcClient( "http://phpxmlrpc.sourceforge.net/server.php" );
 
             // This is useful to view transmission through an interception proxy like burp
-            //$transport->setProxy("http://127.0.0.1:8080");
+            // $transport = $this->rpch->getTransport();
+            // $transport->setProxy("http://127.0.0.1:8080");
 
         } catch (\Exception $e) {
-            
+
             throw $e;
 
         }
@@ -24,7 +26,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testSystemGetCapabilities() {
-        
+
         try { $result = $this->commonRequests("system.getCapabilities"); }
 
         catch (\Exception $e) { throw $e; }
@@ -44,7 +46,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoString", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -56,7 +58,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoStringArray", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -68,7 +70,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoInteger", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -80,7 +82,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoIntegerArray", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -92,7 +94,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoFloat", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -104,7 +106,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoFloatArray", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -116,7 +118,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoStruct", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -132,7 +134,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoStructArray", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -144,7 +146,7 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         try { $result = $this->commonRequests("interopEchoTests.echoValue", array($echoString)); }
 
         catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($echoString, $result);
 
     }
@@ -152,17 +154,21 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
     public function testInteropEchoTestsEchoBase64() {
 
         $echo = array("IkkgY2hlY2tlZCBpdCB2ZXJ5IHRob3JvdWdobHkiLCBzYWlkIHRoZSBjb21wdXRlciwgImFuZCB0aGF0IHF1aXRlIGRlZmluaXRlbHkgaXMgdGhlIGFuc3dlci4gSSB0aGluayB0aGUgcHJvYmxlbSwgdG8gYmUgcXVpdGUgaG9uZXN0IHdpdGggeW91LCBpcyB0aGF0IHlvdSd2ZSBuZXZlciBhY3R1YWxseSBrbm93biB3aGF0IHRoZSBxdWVzdGlvbiBpcy4i");
-    
+
         $decoded = "\"I checked it very thoroughly\", said the computer, \"and that quite definitely is the answer. I think the problem, to be quite honest with you, is that you've never actually known what the question is.\"";
 
-        try { 
+        try {
 
-            $this->rpch->setValueType($echo[0], "base64")->addRequest("interopEchoTests.echoBase64", $echo);
+            $request = RpcRequest::create("interopEchoTests.echoBase64", $echo);
+
+            $request->setSpecialType($echo[0], "base64");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($decoded, $result);
 
     }
@@ -171,14 +177,18 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         $time = time();
 
-        try { 
+        try {
 
-            $this->rpch->setValueType($time, "datetime")->addRequest("interopEchoTests.echoDate", array($time));
+            $request = RpcRequest::create("interopEchoTests.echoDate", array($time));
+
+            $request->setSpecialType($time, "datetime");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
-        
+
         $this->assertSame($time, $result);
 
     }
@@ -189,23 +199,33 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
         $echoString_1 = array("Hello", "comodojo", "!");
         $echoString_2 = 42;
         $echoString_3 = array(42, 10, 100);
+        $time = time();
 
-        try { 
+        try {
 
             $this->rpch
-                ->addRequest("interopEchoTests.echoString", array($echoString_0))
-                ->addRequest("interopEchoTests.echoStringArray", array($echoString_1))
-                ->addRequest("interopEchoTests.echoInteger", array($echoString_2))
-                ->addRequest("interopEchoTests.echoIntegerArray", array($echoString_3));
+                ->addRequest( RpcRequest::create("interopEchoTests.echoString", array($echoString_0)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoStringArray", array($echoString_1)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoInteger", array($echoString_2)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoIntegerArray", array($echoString_3)) )
+                ->addRequest( RpcRequest::create("interopEchoTests.echoIntegerArray", array($echoString_0)) );
+
+            $request = RpcRequest::create("interopEchoTests.echoDate", array($time));
+
+            $request->setSpecialType($time, "datetime");
+
+            $this->rpch->addRequest($request);
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) { throw $e; }
 
-        $this->assertSame($echoString_0, $result[0][0]);
-        $this->assertSame($echoString_1, $result[1][0]);
-        $this->assertSame($echoString_2, $result[2][0]);
-        $this->assertSame($echoString_3, $result[3][0]);
+        $this->assertSame($echoString_0, $result[0]);
+        $this->assertSame($echoString_1, $result[1]);
+        $this->assertSame($echoString_2, $result[2]);
+        $this->assertSame($echoString_3, $result[3]);
+        $this->assertSame(3, $result[4]['faultCode']);
+        $this->assertSame($time, $result[5]);
 
     }
 
@@ -213,12 +233,16 @@ class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
         try {
 
-            $this->rpch->addRequest( $method, $parameters);
+            $request = RpcRequest::create($method, $parameters);
+
+            $this->rpch->addRequest($request);
+
+            $this->rpch->getTransport()->setTimeout(3);
 
             $result = $this->rpch->send();
 
         } catch (\Exception $e) {
-            
+
             throw $e;
 
         }
