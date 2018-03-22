@@ -29,7 +29,7 @@ class JsonProcessor extends AbstractProcessor {
 
         }
 
-        return ( sizeof($payload > 1) ) ? json_encode($payload) : json_encode($payload[0]);
+        return sizeof($payload) > 1 ? json_encode($payload) : json_encode($payload[0]);
 
     }
 
@@ -48,8 +48,6 @@ class JsonProcessor extends AbstractProcessor {
             if ( is_null($content) ) throw new Exception("Incomprehensible or empty response");
 
             if ( $this->isMulticall === false ) {
-
-                $content = $content[0];
 
                 if ( $content["id"] != $this->ids[0] ) throw new Exception("Invalid response ID received");
 
