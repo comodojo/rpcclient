@@ -8,22 +8,44 @@ use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
 use \Exception;
 
+/**
+ * @package     Comodojo Spare Parts
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @license     MIT
+ *
+ * LICENSE:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 class HttpTransport extends Httprequest implements TransportInterface {
 
-    private $aes = null;
+    private $aes;
 
     /**
      * Send pre-econded request to server
      *
-     * @param   string   $data
-     * @param   string   $content_type
+     * @param string $data
+     * @param string $content_type
      *
-     * @return  string
+     * @return string
      *
-     * @throws \Comodojo\Exception\RpcException
-     * @throws \Comodojo\Exception\HttpException
+     * @throws RpcException
+     * @throws HttpException
+     * @throws Exception
      */
-    public function performCall(LoggerInterface $logger, $data, $content_type, $encrypt=false) {
+    public function performCall(
+        LoggerInterface $logger,
+        $data,
+        $content_type,
+        $encrypt=false
+    ) {
 
         $this->setHttpMethod("POST");
 
@@ -110,9 +132,9 @@ class HttpTransport extends Httprequest implements TransportInterface {
     /**
      * Check if an encrypted envelope is consisent or not
      *
-     * @param   string    $data
+     * @param string $data
      *
-     * @return  bool
+     * @return bool
      */
     private static function checkEncryptedResponseConsistency($data) {
 

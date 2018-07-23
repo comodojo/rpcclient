@@ -1,10 +1,8 @@
-<?php namespace Comodojo\RpcClient\Components;
+<?php namespace Comodojo\RpcClient\Traits;
 
 use \Exception;
 
 /**
- * Protocol Trait
- *
  * @package     Comodojo Spare Parts
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     MIT
@@ -25,9 +23,9 @@ trait Protocol {
     /**
      * Supported RPC protocols
      *
-     * @var string
+     * @var array
      */
-    protected $supported_protocols = array("XML", "JSON");
+    protected static $supported_protocols = ["XML", "JSON"];
 
     /**
      * RPC protocol
@@ -39,17 +37,19 @@ trait Protocol {
     /**
      * Set RPC protocol
      *
-     * @param   string  $protocol RPC protocol
+     * @param string $protocol
+     *  RPC protocol
      *
-     * @return  \Comodojo\RpcClient\RpcClient
-     *
-     * @throws \Exception
+     * @return self
+     * @throws Exception
      */
     public function setProtocol($protocol) {
 
         $proto = strtoupper($protocol);
 
-        if ( !in_array($proto, $this->supported_protocols) ) throw new Exception("Invalid RPC protocol");
+        if ( !in_array($proto, static::$supported_protocols) ){
+            throw new Exception("Invalid RPC protocol");
+        }
 
         $this->protocol = $proto;
 
@@ -57,7 +57,12 @@ trait Protocol {
 
     }
 
-    final public function getProtocol() {
+    /**
+     * Get RPC protocol
+     *
+     * @return string
+     */
+    public function getProtocol() {
 
         return $this->protocol;
 

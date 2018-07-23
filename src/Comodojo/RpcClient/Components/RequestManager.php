@@ -4,8 +4,6 @@ use \Comodojo\RpcClient\RpcRequest;
 use \Exception;
 
 /**
- * Protocol Trait
- *
  * @package     Comodojo Spare Parts
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     MIT
@@ -23,21 +21,17 @@ use \Exception;
 
 class RequestManager {
 
-    private $requests = array();
+    private $requests = [];
 
     public function clean() {
 
-        $this->requests = array();
+        $this->requests = [];
 
         return $this;
 
     }
 
     public function add(RpcRequest $request) {
-
-        // $uid = $request->getUniqueId();
-
-        // $this->requests[$uid] = $request;
 
         $this->requests[] = $request;
 

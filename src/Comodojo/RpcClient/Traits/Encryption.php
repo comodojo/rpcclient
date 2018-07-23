@@ -1,10 +1,8 @@
-<?php namespace Comodojo\RpcClient\Components;
+<?php namespace Comodojo\RpcClient\Traits;
 
 use \Exception;
 
 /**
- * Protocol Trait
- *
  * @package     Comodojo Spare Parts
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     MIT
@@ -30,13 +28,15 @@ trait Encryption {
     private $encryption = false;
 
     /**
-     * Set encryption key; this will enable the NOT-STANDARD payload encryption
+     * Set encryption key
      *
-     * @param   string  $key Encryption key
+     * This will enable the NOT-STANDARD payload encryption
      *
-     * @return  \Comodojo\RpcClient\RpcClient
+     * @param string $key
+     *  Encryption key
      *
-     * @throws \Exception
+     * @return self
+     * @throws Exception
      */
     public function setEncryption($key) {
 
@@ -48,7 +48,12 @@ trait Encryption {
 
     }
 
-    final public function getEncryption() {
+    /**
+     * Get encryption key
+     *
+     * @return string
+     */
+    public function getEncryption() {
 
         return $this->encryption;
 

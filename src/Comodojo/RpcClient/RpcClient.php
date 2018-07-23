@@ -2,18 +2,20 @@
 
 use \Comodojo\RpcClient\Interfaces\Transport as TransportInterface;
 use \Comodojo\RpcClient\Interfaces\Processor as ProcessorInterface;
+use \Comodojo\RpcClient\Traits\Protocol;
+use \Comodojo\RpcClient\Traits\Encryption;
+use \Comodojo\RpcClient\Traits\Encoding;
 use \Comodojo\RpcClient\Processor\JsonProcessor;
 use \Comodojo\RpcClient\Processor\XmlProcessor;
 use \Comodojo\RpcClient\Components\HttpTransport;
-use \Comodojo\RpcClient\Components\Protocol;
-use \Comodojo\RpcClient\Components\Encryption;
-use \Comodojo\RpcClient\Components\Encoding;
 use \Comodojo\RpcClient\Components\RequestManager;
 use \Comodojo\Foundation\Logging\Manager as LogManager;
+use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Psr\Log\LoggerInterface;
 use \Comodojo\Exception\RpcException;
 use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\XmlrpcException;
+use \InvalidArgumentException;
 use \Exception;
 
 /**
@@ -41,12 +43,11 @@ class RpcClient {
     use Protocol;
     use Encryption;
     use Encoding;
+    use LoggerTrait;
 
     const JSONRPC = "JSON";
 
     const XMLRPC = "XML";
-
-    // internals
 
     /**
      * Autoclean requests
@@ -55,22 +56,37 @@ class RpcClient {
      */
     private $autoclean = true;
 
+    /**
+     * @var TransportInterface
+     */
     private $transport;
 
-    private $logger;
-
+    /**
+     * @var RequestManager
+     */
     private $request;
 
+    /**
+     * @var JsonProcessor
+     */
     private $json_processor;
 
+    /**
+     * @var XmlProcessor
+     */
     private $xml_processor;
 
     /**
      * Class constructor
      *
-     * @param   string  $server  Remote RPC server address
-     *
-     * @throws \Comodojo\Exception\HttpException
+     * @param string $server
+     *  Remote RPC server address
+     * @param LoggerInterface $logger
+     *  Logger interface
+     * @param TransportInterface $transport
+     *  Transport Interface
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function __construct(
         $server,
@@ -78,9 +94,13 @@ class RpcClient {
         TransportInterface $transport = null
     ) {
 
-        if ( empty($server) ) throw new Exception("Invalid RPC server address");
+        if ( empty($server) ) throw new InvalidArgumentException("Invalid RPC server address");
 
-        $this->logger = is_null($logger) ? LogManager::create('rpcclient', false)->getLogger() : $logger;
+        $this->setLogger(
+            is_null($logger) ?
+                LogManager::create('rpcclient', false)->getLogger() :
+                $logger
+            );
 
         $this->request = new RequestManager();
 
@@ -92,17 +112,11 @@ class RpcClient {
 
             $this->transport = empty($transport) ? new HttpTransport($server) : $transport;
 
-        } catch (Exception $he) {
+        } catch (Exception $e) {
 
-            throw $he;
+            throw $e;
 
         }
-
-    }
-
-    public function getLogger() {
-
-        return $this->logger;
 
     }
 
@@ -121,9 +135,10 @@ class RpcClient {
     /**
      * Set autoclean on/off
      *
-     * @param   bool   $mode  If true, requests will be removed from queue at each send()
+     * @param bool $mode
+     *  If true, requests will be removed from queue at each send()
      *
-     * @return  \Comodojo\RpcClient\RpcClient
+     * @return self
      */
     public function setAutoclean($mode = true) {
 
@@ -172,10 +187,10 @@ class RpcClient {
      *
      * @return mixed
      *
-     * @throws \Comodojo\Exception\RpcException
-     * @throws \Comodojo\Exception\HttpException
-     * @throws \Comodojo\Exception\XmlrpcException
-     * @throws \Exception
+     * @throws RpcException
+     * @throws HttpException
+     * @throws XmlrpcException
+     * @throws Exception
      */
     public function send() {
 

@@ -1,10 +1,6 @@
-<?php namespace Comodojo\RpcClient\Components;
-
-use \Exception;
+<?php namespace Comodojo\RpcClient\Traits;
 
 /**
- * Protocol Trait
- *
  * @package     Comodojo Spare Parts
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     MIT
@@ -32,9 +28,9 @@ trait Encoding {
     /**
      * Set encoding (default to utf-8)
      *
-     * @param   string  $encoding Characters encoding
+     * @param string $encoding Characters encoding
      *
-     * @return  \Comodojo\RpcClient\RpcClient
+     * @return self
      */
     public function setEncoding($encoding) {
 
@@ -44,7 +40,12 @@ trait Encoding {
 
     }
 
-    final public function getEncoding() {
+    /**
+     * Get encoding
+     *
+     * @return string
+     */
+    public function getEncoding() {
 
         return $this->encoding;
 

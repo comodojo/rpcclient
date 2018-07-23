@@ -8,6 +8,22 @@ use \Comodojo\Exception\RpcException;
 use \Comodojo\Exception\XmlrpcException;
 use \Exception;
 
+/**
+ * @package     Comodojo Spare Parts
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @license     MIT
+ *
+ * LICENSE:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 class XmlProcessor extends AbstractProcessor {
 
     private $encoder;
@@ -16,6 +32,9 @@ class XmlProcessor extends AbstractProcessor {
 
     private $isMulticall = false;
 
+    /**
+     * {@inheritdoc}
+     */
     public function __construct($encoding, LoggerInterface $logger) {
 
         parent::__construct($encoding, $logger);
@@ -26,7 +45,10 @@ class XmlProcessor extends AbstractProcessor {
 
     }
 
-    public function encode($requests) {
+    /**
+     * {@inheritdoc}
+     */
+    public function encode(array $requests) {
 
         $requests = array_values($requests);
 
@@ -46,6 +68,9 @@ class XmlProcessor extends AbstractProcessor {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function decode($response) {
 
         try {
@@ -66,15 +91,14 @@ class XmlProcessor extends AbstractProcessor {
 
     private function encodeSingleCall(RpcRequest $request) {
 
-        $this->logger->notice("Performing a single XML call");
+        $this->logger->debug("Performing a single XML call");
 
     	$this->logger->debug("Data dump before encoding", $request->toArray());
 
         try {
 
         	// encoding
-
-        	foreach ( $request->getSpecialTypes() as $key => $value ) {
+            foreach ( $request->getSpecialTypes() as $key => $value ) {
 
                 $this->encoder->setValueType($key, $value);
 
@@ -97,44 +121,44 @@ class XmlProcessor extends AbstractProcessor {
     /**
      * Perform an xml multicall
      *
-     * @param   array   $requests
-     *
-     * @return  array
-     *
-     * @throws \Comodojo\Exception\RpcException
-     * @throws \Comodojo\Exception\HttpException
-     * @throws \Comodojo\Exception\XmlrpcException
-     * @throws \Exception
+     * @param array $requests
+     * @return array
+     * @throws XmlrpcException
      */
-    private function encodeMulticall($requests) {
+    private function encodeMulticall(array $requests) {
 
-        $composed_requests = array();
+        $composed_requests = [];
 
-    	$this->logger->notice("Performing an XML multicall");
+    	$this->logger->debug("Performing an XML multicall");
 
     	$this->logger->debug("Data dump before encoding", $requests);
 
         foreach ($requests as $request) {
 
-            $composed_requests[] = array($request->getMethod(), $request->getParameters());
+            $composed_requests[] = [
+                $request->getMethod(),
+                $request->getParameters()
+            ];
 
             foreach ( $request->getSpecialTypes() as $key => $value ) {
-
                 $this->encoder->setValueType($key, $value);
-
             }
 
         }
 
         try {
 
-            $encoded_requests = $this->encoder->setEncoding($this->getEncoding())->encodeMulticall($composed_requests);
+            $encoded_requests = $this->encoder
+                ->setEncoding($this->getEncoding())
+                ->encodeMulticall($composed_requests);
 
         } catch (XmlrpcException $xe) {
 
             throw $xe;
 
         }
+
+        $this->logger->debug("Data dump after encoding: ".$encoded_requests);
 
         return $encoded_requests;
 

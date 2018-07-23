@@ -5,19 +5,38 @@ use \Comodojo\Exception\RpcException;
 use \Comodojo\RpcClient\RpcRequest;
 use \Exception;
 
+/**
+ * @package     Comodojo Spare Parts
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @license     MIT
+ *
+ * LICENSE:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 class JsonProcessor extends AbstractProcessor {
 
-    private $ids = array();
+    private $ids = [];
 
-    private $isMulticall = false;
+    private $is_multicall = false;
 
-    public function encode($requests) {
+    /**
+     * {@inheritdoc}
+     */
+    public function encode(array $requests) {
 
         $requests = array_values($requests);
 
-        $this->isMulticall = sizeof($requests) > 1 ? true : false;
+        $this->is_multicall = sizeof($requests) > 1 ? true : false;
 
-        $payload = array();
+        $payload = [];
 
         foreach ($requests as $request) {
 
@@ -33,6 +52,9 @@ class JsonProcessor extends AbstractProcessor {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function decode($response) {
 
         try {
@@ -47,7 +69,7 @@ class JsonProcessor extends AbstractProcessor {
 
             if ( is_null($content) ) throw new Exception("Incomprehensible or empty response");
 
-            if ( $this->isMulticall === false ) {
+            if ( $this->is_multicall === false ) {
 
                 if ( $content["id"] != $this->ids[0] ) throw new Exception("Invalid response ID received");
 
@@ -55,19 +77,40 @@ class JsonProcessor extends AbstractProcessor {
 
             } else {
 
-                $batch_content = array();
+                $batch_content = [];
 
                 foreach ( $this->ids as $key => $id ) {
 
-                    if ( !isset($content[$key]) ) $batch_content[$key] = array("error" => array("code" => null, "message" => "Empty response"));
-
-                    else if ( isset($content[$key]["error"]) ) $batch_content[$key] = array("error" => $content["error"]);
-
-                    else if ( !isset($content[$key]["id"]) ) $batch_content[$key] = array("error" => array("code" => null, "message" => "Malformed response received"));
-
-                    else if ( $content[$key]["id"] != $id ) $batch_content[$key] = array("error" => array("code" => null, "message" => "Invalid response ID received"));
-
-                    else $batch_content[$key] = array("result" => $content[$key]["result"]);
+                    if ( !isset($content[$key]) ) {
+                        $batch_content[$key] = [
+                            "error" => [
+                                "code" => null,
+                                "message" => "Empty response"
+                            ]
+                        ];
+                    } else if ( isset($content[$key]["error"]) ) {
+                        $batch_content[$key] = [
+                            "error" => $content["error"]
+                        ];
+                    } else if ( !isset($content[$key]["id"]) ) {
+                        $batch_content[$key] = [
+                            "error" => [
+                                "code" => null,
+                                "message" => "Malformed response received"
+                            ]
+                        ];
+                    } else if ( $content[$key]["id"] != $id ) {
+                        $batch_content[$key] = [
+                            "error" => [
+                                "code" => null,
+                                "message" => "Invalid response ID received"
+                            ]
+                        ];
+                    } else {
+                        $batch_content[$key] = [
+                            "result" => $content[$key]["result"]
+                        ];
+                    }
 
                 }
 
@@ -87,11 +130,11 @@ class JsonProcessor extends AbstractProcessor {
 
     private static function composeJsonRequest(RpcRequest $request) {
 
-        $return = array(
+        $return = [
             "jsonrpc"   =>  "2.0",
             "method"    =>  $request->getMethod(),
             "params"    =>  $request->getParameters()
-        );
+        ];
 
         $rid = $request->getId();
 
@@ -109,7 +152,7 @@ class JsonProcessor extends AbstractProcessor {
 
         }
 
-        return array($return, $id);
+        return [$return, $id];
 
     }
 
