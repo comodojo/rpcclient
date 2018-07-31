@@ -178,7 +178,12 @@ class RpcRequest {
      */
     public function setId($id = null) {
 
-        if ( is_null($id) || is_int($id) || is_bool($id) ) {
+        if (
+            $id === null ||
+            is_bool($id) ||
+            ( is_int($id) && $id > 0 ) ||
+            ( is_string($id) && !empty($id) )
+        ) {
 
             $this->id = $id;
 

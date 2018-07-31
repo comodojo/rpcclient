@@ -3,6 +3,9 @@
 use \Comodojo\RpcClient\RpcClient;
 use \Comodojo\RpcClient\RpcRequest;
 
+/**
+ * @group XMLRPC
+ */
 class XmlRpcClientTest extends \PHPUnit_Framework_TestCase {
 
     protected $rpch = null;

@@ -3,6 +3,9 @@
 use \Comodojo\RpcClient\RpcClient;
 use \Comodojo\RpcClient\RpcRequest;
 
+/**
+ * @group JSONRPC
+ */
 class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
 
     protected $rpch = null;
@@ -91,6 +94,34 @@ class JsonRpcClientTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame(42, $result[0]['result']);
         $this->assertSame($string, $result[1]['result']);
 
+    }
+
+    /**
+     * @dataProvider idProvider
+     */
+    public function testCustomId($id) {
+
+        $string = 'comodojo';
+
+        try {
+
+            $this->rpch->addRequest( RpcRequest::create("echo", [$string], $id) );
+
+            $result = $this->rpch->send();
+
+        } catch (\Exception $e) { throw $e; }
+
+        $this->assertSame($string, $result);
+
+    }
+
+    public function idProvider() {
+        return [
+            [100],
+            ['101'],
+            ['customid'],
+            [true]
+        ];
     }
 
 }
