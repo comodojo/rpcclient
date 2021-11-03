@@ -97,6 +97,7 @@ class HttpTransport extends Httprequest implements TransportInterface {
 
             $this->aes = new AES('ecb');
 
+            //Only keys of sizes 16, 24 or 32 supported
             $this->aes->setKey($key);
 
             $return = 'comodojo_encrypted_request-'.base64_encode( $this->aes->encrypt($data) );
