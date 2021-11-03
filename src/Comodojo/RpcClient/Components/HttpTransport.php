@@ -2,7 +2,7 @@
 
 use \Comodojo\RpcClient\Interfaces\Transport as TransportInterface;
 use \Comodojo\Httprequest\Httprequest;
-use \phpseclib\Crypt\AES;
+use phpseclib3\Crypt\AES;
 use \Psr\Log\LoggerInterface;
 use \Comodojo\Exception\HttpException;
 use \Comodojo\Exception\RpcException;
@@ -95,7 +95,7 @@ class HttpTransport extends Httprequest implements TransportInterface {
 
         if ( !empty($key) && is_string($key) ) {
 
-            $this->aes = new AES();
+            $this->aes = new AES('ecb');
 
             $this->aes->setKey($key);
 
