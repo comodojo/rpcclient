@@ -1,5 +1,5 @@
 {
-    "name": "pmarcelli/rpcclient",
+    "name": "comodojo/rpcclient",
     "description": "XML and JSON(2.0) RPC client",
     "license": "MIT",
     "type": "library",
@@ -27,9 +27,9 @@
     },
     "require": {
         "php": ">=5.6.0",
-        "pmarcelli/httprequest": "dev-httprequest_u7320",
-        "pmarcelli/xmlrpc": "dev-xmlrpc_u7320",
-        "pmarcelli/foundation": "dev-foundation_u7320",
+        "comodojo/httprequest": "dev-master",
+        "comodojo/xmlrpc": "dev-master",
+        "comodojo/foundation": "dev-master",
         "phpseclib/phpseclib": "^3.0"
     },
     "require-dev": {
