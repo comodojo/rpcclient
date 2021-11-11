@@ -25,6 +25,7 @@
             "Comodojo\\RpcClient\\": "src/Comodojo/RpcClient"
         }
     },
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.6.0",
         "comodojo/httprequest": "dev-master",
